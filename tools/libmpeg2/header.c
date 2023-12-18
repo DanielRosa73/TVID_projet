@@ -28,6 +28,8 @@
 #include <stdlib.h>	/* defines NULL */
 #include <string.h>	/* memcmp */
 
+#include <stdio.h>
+
 #include "mpeg2.h"
 #include "attributes.h"
 #include "mpeg2_internal.h"
@@ -641,6 +643,21 @@ static int picture_coding_ext (mpeg2dec_t * mpeg2dec)
 	flags |= (((buffer[4]<<26) | (buffer[5]<<18) | (buffer[6]<<10)) &
 		  PIC_MASK_COMPOSITE_DISPLAY) | PIC_FLAG_COMPOSITE_DISPLAY;
     picture->flags = flags;
+
+	// Print flags of part A.4 in the pdf
+	static int frame_number = 0;
+	fprintf(stderr, "Frame %d: \n", frame_number++);
+	fprintf(stderr, "	- progressive_frame: %d\n", (flags & PIC_FLAG_PROGRESSIVE_FRAME) != 0);
+	fprintf(stderr, "	- top_field_first: %d\n", (flags & PIC_FLAG_TOP_FIELD_FIRST) != 0);
+	fprintf(stderr, "	- repeat_first_field: %d\n", (flags & PIC_FLAG_REPEAT_FIRST_FIELD) != 0);
+
+	// Put them in a file located at "tools/flags.txt"
+	FILE *f = fopen("flags.txt", "a");
+	fprintf(f, "Frame %d: \n", frame_number++);
+	fprintf(f, "	- progressive_frame: %d\n", (flags & PIC_FLAG_PROGRESSIVE_FRAME) != 0);
+	fprintf(f, "	- top_field_first: %d\n", (flags & PIC_FLAG_TOP_FIELD_FIRST) != 0);
+	fprintf(f, "	- repeat_first_field: %d\n", (flags & PIC_FLAG_REPEAT_FIRST_FIELD) != 0);
+	fclose(f);
 
     mpeg2dec->ext_state = PIC_DISPLAY_EXT | COPYRIGHT_EXT | QUANT_MATRIX_EXT;
 
