@@ -46,6 +46,8 @@ namespace Application
 
             void LoadImage(const std::string& filename);
 
+            void SaveImageAsPPM(const std::string& outputPath);
+
             inline GLFWwindow* GetWindow() { return window_; }
 
         private:
@@ -55,5 +57,8 @@ namespace Application
             ImageInfo imageInfo_;
 
             GLuint textureID_;
+
+            std::string input_filePathName_;
+            char* output_filePathName_;
     };
 }

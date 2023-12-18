@@ -111,13 +111,35 @@ namespace Application
     }
 
     void Application::Start()
-    {
-        // Initialize the file dialog
-        ImGuiFileDialog::Instance()->OpenDialog("ChooseFileDlgKey", "Choose File", ".pgm", ".");
-    }
+    {}
 
     void Application::Update()
     {
+        if (ImGui::BeginMainMenuBar())
+        {
+            if (ImGui::BeginMenu("File"))
+            {
+                if (ImGui::MenuItem("Open"))
+                {
+                    ImGuiFileDialog::Instance()->OpenDialog("ChooseFileDlgKey", "Choose File", ".pgm", ".");
+                }
+
+                if (ImGui::MenuItem("Save"))
+                {
+                    ImGuiFileDialog::Instance()->OpenDialog("SaveFileDlgKey", "Save File", ".ppm", ".");
+                }
+
+                if (ImGui::MenuItem("Exit"))
+                {
+                    glfwSetWindowShouldClose(window_, true);
+                }
+
+                ImGui::EndMenu();
+            }
+
+            ImGui::EndMainMenuBar();
+        }
+
         if (ImGuiFileDialog::Instance()->Display("ChooseFileDlgKey"))
         {
             if (ImGuiFileDialog::Instance()->IsOk())
@@ -125,8 +147,27 @@ namespace Application
                 std::string filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
                 std::string filePath = ImGuiFileDialog::Instance()->GetCurrentPath();
 
+                input_filePathName_ = filePathName;
+
                 // Load the image
-                LoadImage(filePathName);
+                LoadImage(input_filePathName_);
+            }
+
+            ImGuiFileDialog::Instance()->Close();
+        }
+
+
+        if (ImGuiFileDialog::Instance()->Display("SaveFileDlgKey"))
+        {
+            if (ImGuiFileDialog::Instance()->IsOk())
+            {
+                std::string filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
+                std::string filePath = ImGuiFileDialog::Instance()->GetCurrentPath();
+
+                output_filePathName_ = const_cast<char*>(filePathName.c_str());
+
+                // Save the image
+                SaveImageAsPPM(output_filePathName_);
             }
 
             ImGuiFileDialog::Instance()->Close();
@@ -173,7 +214,7 @@ namespace Application
         GLenum err;
         while ((err = glGetError()) != GL_NO_ERROR)
         {
-            std::cout << "OpenGL error: " << err << std::endl;
+            std::cerr << "OpenGL error: " << err << std::endl;
         }
 
         textureID_ = textureID;
@@ -182,5 +223,64 @@ namespace Application
         imageInfo_.depth = imageChannels;
 
         stbi_image_free(imageData);
+    }
+
+    void Application::SaveImageAsPPM(const std::string& outputPath)
+    {
+        std::vector<unsigned char> ppmData(imageInfo_.width * imageInfo_.height * 3);
+
+        std::ifstream input(input_filePathName_, std::ios::binary);
+        if (!input.is_open())
+        {
+            std::cerr << "Could not open the input file." << std::endl;
+            return;
+        }
+
+        std::string line;
+        std::getline(input, line);
+        if (line != "P5")
+        {
+            std::cerr << "Unsupported image format!" << std::endl;
+            return;
+        }
+
+        std::getline(input, line);
+        while (line[0] == '#')
+        {
+            std::getline(input, line);
+        }
+
+        std::istringstream iss(line);
+        int width, height, maxval;
+        iss >> width >> height;
+        input >> maxval;
+        input.get();
+
+        std::vector<unsigned char> image(width * height);
+        std::vector<unsigned char> colorImage(width * height * 3);
+
+        input.read(reinterpret_cast<char*>(image.data()), image.size());
+
+        for (int i = 0; i < image.size(); i++)
+        {
+            ppmData[i * 3] = image[i];
+            ppmData[i * 3 + 1] = image[i];
+            ppmData[i * 3 + 2] = image[i];
+        }
+
+        std::ofstream outFile(outputPath, std::ios::binary);
+        if (outFile.is_open())
+        {
+            outFile << "P6\n" << imageInfo_.width << " " << imageInfo_.height << "\n255\n";
+        
+            outFile.write(reinterpret_cast<char*>(ppmData.data()), ppmData.size());
+
+            outFile.close();
+            std::cout << "Saved PPM image to " << outputPath << std::endl;
+        }
+        else
+        {
+            std::cerr << "Could not open the output file path for writing: " << outputPath << std::endl;
+        }
     }
 }
