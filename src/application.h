@@ -1,9 +1,13 @@
 #pragma once
 
 #include "imgui.h"
+#include "ImGuiFileDialog.h"
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
 #include <stdio.h>
+#include <iostream>
+
+#include <stb_image.h>
 
 #define GL_SILENCE_DEPRECATION
 #if defined(IMGUI_IMPL_OPENGL_ES2)
@@ -18,6 +22,9 @@
 #ifdef __EMSCRIPTEN__
 #include "../libs/emscripten/emscripten_mainloop_stub.h"
 #endif
+
+#include "get_info.h"
+#include "imageConverter.h"
 
 static void glfw_error_callback(int error, const char* description)
 {
@@ -37,13 +44,16 @@ namespace Application
             void Start();
             void Update();
 
+            void LoadImage(const std::string& filename);
+
             inline GLFWwindow* GetWindow() { return window_; }
 
         private:
             GLFWwindow* window_;
             ImVec4 clear_color_ = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 
-            bool show_demo_window_ = true;
-            bool show_another_window_ = false;
+            ImageInfo imageInfo_;
+
+            GLuint textureID_;
     };
 }

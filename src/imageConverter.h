@@ -6,7 +6,7 @@
 #include <iostream>
 #include <sstream>
 
-void ConvertPGMtoPPM(const std::string &inputFilename, const std::string &outputFilename) {
+inline void ConvertPGMtoPPM(const std::string &inputFilename, const std::string &outputFilename) {
     std::ifstream input(inputFilename, std::ios::binary);
     if (!input.is_open()) {
         std::cerr << "Could not open the input file." << std::endl;

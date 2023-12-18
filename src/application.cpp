@@ -32,7 +32,7 @@ namespace Application
 #endif
 
         // Create window with graphics context
-        window_ = glfwCreateWindow(1280, 720, "Dear ImGui GLFW+OpenGL3 example", nullptr, nullptr);
+        window_ = glfwCreateWindow(1920, 1080, "TVID Project", nullptr, nullptr);
         if (window_ == nullptr)
             fprintf(stderr, "Failed to create GLFW window\n");
         glfwMakeContextCurrent(window_);
@@ -86,21 +86,8 @@ namespace Application
     {
         Start();
 
-        // Main loop
-#ifdef __EMSCRIPTEN__
-        // For an Emscripten build we are disabling file-system access, so let's not attempt to do a fopen() of the imgui.ini file.
-        // You may manually call LoadIniSettingsFromMemory() to load settings from your own storage.
-        io.IniFilename = nullptr;
-        EMSCRIPTEN_MAINLOOP_BEGIN
-#else
         while (!glfwWindowShouldClose(window_))
-#endif
         {
-            // Poll and handle events (inputs, window resize, etc.)
-            // You can read the io.WantCaptureMouse, io.WantCaptureKeyboard flags to tell if dear imgui wants to use your inputs.
-            // - When io.WantCaptureMouse is true, do not dispatch mouse input data to your main application, or clear/overwrite your copy of the mouse data.
-            // - When io.WantCaptureKeyboard is true, do not dispatch keyboard input data to your main application, or clear/overwrite your copy of the keyboard data.
-            // Generally you may always pass all inputs to dear imgui, and hide them from your application based on those two flags.
             glfwPollEvents();
 
             // Start the Dear ImGui frame
@@ -121,56 +108,79 @@ namespace Application
 
             glfwSwapBuffers(window_);
         }
-
-#ifdef __EMSCRIPTEN__
-        EMSCRIPTEN_MAINLOOP_END;
-#endif
-
     }
 
     void Application::Start()
     {
-
+        // Initialize the file dialog
+        ImGuiFileDialog::Instance()->OpenDialog("ChooseFileDlgKey", "Choose File", ".pgm", ".");
     }
 
     void Application::Update()
     {
-        // 1. Show the big demo window (Most of the sample code is in ImGui::ShowDemoWindow()! You can browse its code to learn more about Dear ImGui!).
-        if (show_demo_window_)
-            ImGui::ShowDemoWindow(&show_demo_window_);
-
-        // 2. Show a simple window that we create ourselves. We use a Begin/End pair to create a named window.
+        if (ImGuiFileDialog::Instance()->Display("ChooseFileDlgKey"))
         {
-            static float f = 0.0f;
-            static int counter = 0;
+            if (ImGuiFileDialog::Instance()->IsOk())
+            {
+                std::string filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
+                std::string filePath = ImGuiFileDialog::Instance()->GetCurrentPath();
 
-            ImGui::Begin("Hello, world!");                          // Create a window called "Hello, world!" and append into it.
+                // Load the image
+                LoadImage(filePathName);
+            }
 
-            ImGui::Text("This is some useful text.");               // Display some text (you can use a format strings too)
-            ImGui::Checkbox("Demo Window", &show_demo_window_);      // Edit bools storing our window open/close state
-            ImGui::Checkbox("Another Window", &show_another_window_);
-
-            ImGui::SliderFloat("float", &f, 0.0f, 1.0f);            // Edit 1 float using a slider from 0.0f to 1.0f
-            ImGui::ColorEdit3("clear color", (float*)&clear_color_); // Edit 3 floats representing a color
-
-            if (ImGui::Button("Button"))                            // Buttons return true when clicked (most widgets return true when edited/activated)
-                counter++;
-            ImGui::SameLine();
-            ImGui::Text("counter = %d", counter);
-
-            ImGuiIO& io = ImGui::GetIO();
-            ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
-            ImGui::End();
+            ImGuiFileDialog::Instance()->Close();
         }
 
-        // 3. Show another simple window.
-        if (show_another_window_)
+        if (textureID_ != 0)
         {
-            ImGui::Begin("Another Window", &show_another_window_);   // Pass a pointer to our bool variable (the window will have a closing button that will clear the bool when clicked)
-            ImGui::Text("Hello from another window!");
-            if (ImGui::Button("Close Me"))
-                show_another_window_ = false;
+            ImGui::Begin("Image");
+            ImGui::Image(reinterpret_cast<void*>(static_cast<intptr_t>(textureID_)), ImVec2(imageInfo_.width, imageInfo_.height));
             ImGui::End();
         }
+        else
+        {
+            ImGui::Begin("Image");
+            ImGui::Text("No image loaded");
+            ImGui::End();
+        }
+    }
+
+    void Application::LoadImage(const std::string& filename)
+    {
+        int imageWidth, imageHeight, imageChannels;
+        unsigned char* imageData = stbi_load(filename.c_str(), &imageWidth, &imageHeight, &imageChannels, 0);
+
+        if (imageData == nullptr)
+        {
+            fprintf(stderr, "Failed to load image: %s\n", stbi_failure_reason());
+            return;
+        }
+
+        GLuint textureID;
+        glGenTextures(1, &textureID);
+        glBindTexture(GL_TEXTURE_2D, textureID);
+
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_R8, imageWidth, imageHeight, 0, GL_RED, GL_UNSIGNED_BYTE, imageData);
+        GLint swizzleMask[] = {GL_RED, GL_RED, GL_RED, GL_ONE};
+        glTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_RGBA, swizzleMask);
+
+        GLenum err;
+        while ((err = glGetError()) != GL_NO_ERROR)
+        {
+            std::cout << "OpenGL error: " << err << std::endl;
+        }
+
+        textureID_ = textureID;
+        imageInfo_.width = imageWidth;
+        imageInfo_.height = imageHeight;
+        imageInfo_.depth = imageChannels;
+
+        stbi_image_free(imageData);
     }
 }

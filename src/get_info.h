@@ -12,7 +12,7 @@ struct ImageInfo {
     std::string samplingMode;
 };
 
-ImageInfo readPGM(const std::string& filename) {
+inline ImageInfo readPGM(const std::string& filename) {
     std::ifstream file(filename);
     ImageInfo info;
     std::string line;
