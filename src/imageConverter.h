@@ -82,7 +82,7 @@ void ConvertPGMtoPPM(const std::string &inputFilename, const std::string &output
 
     for (int y = 0; y < height; y++)
     {
-        int correspondingY = (y * yHeight) / height;
+        int correspondingY = (2 * y / 3);
         for (int x = 0; x < width; x++)
         {
             fullY[y * width + x] = yComponent[correspondingY * width + x];
