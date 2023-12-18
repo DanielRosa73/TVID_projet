@@ -91,25 +91,27 @@ void ConvertPGMtoPPM(const std::string &inputFilename, const std::string &output
 
     for (int y = 0; y < height; ++y)
     {
-        int correspondingU = (y * uvHeight) / height;
-        int correspondingV = (y * uvHeight) / height;
-
         for (int x = 0; x < width; ++x)
         {
-            fullU[y * width + x] = uComponent[correspondingU + (x / 2)];
-            fullV[y * width + x] = vComponent[correspondingV + (x / 2)];
+            int uvIndex = (y / 3) * uvWidth + (x / 2);
+            fullU[y * width + x] = uComponent[uvIndex];
+            fullV[y * width + x] = vComponent[uvIndex];
         }
     }
 
     for (int i = 0; i < height * width; i++)
     {
         int y = fullY[i];
-        int u = fullU[i];
-        int v = fullV[i];
+        int u = fullU[i] - 128;
+        int v = fullV[i] - 128;
 
-        int r = y + v * (1 - 0.299);
-        int g = y - u * (1 - 0.114) * 0.114 / 0.587 - v * (1 - 0.299) * 0.299 / 0.587;
-        int b = y + u * (1 - 0.114);
+        int r = y + 1.402 * v;
+        int g = y - 0.34414 * u - 0.71414 * v;
+        int b = y + 1.772 * u;
+
+        r = std::min(255, std::max(0, r));
+        g = std::min(255, std::max(0, g));
+        b = std::min(255, std::max(0, b));
 
         colorImage[i * 3] = r;
         colorImage[i * 3 + 1] = g;
