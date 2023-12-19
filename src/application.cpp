@@ -302,6 +302,7 @@ namespace Application
                 ImGui::Text("FPS and ms Info of Video");
                 ImGui::Text("ms: %f", ms_);
                 ImGui::SliderFloat("ms", &ms_, 0.0f, 100.0f);
+                ImGui::Text("fps: %f", 1000.0f / ms_);
 
                 ImGui::End();
             }
@@ -398,7 +399,7 @@ namespace Application
                 static bool autoPlay = false;
                 static float lastTime = 0.0f;
                 float currentTime = ImGui::GetTime();
-                fps_ = 1.0f / ms_;
+                fps_ = ms_ / 1000.0f;
 
                 static int currentImageIndex = -1;
                 int previousImageIndex = currentImageIndex;

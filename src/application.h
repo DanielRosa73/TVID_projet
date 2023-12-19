@@ -72,6 +72,6 @@ namespace Application
             std::vector<std::string> imageVideoPaths_;
 
             float ms_ = 60.0f;
-            float fps_ = 1.0f / ms_;
+            float fps_ = ms_ / 1000.0f;
     };
 }
