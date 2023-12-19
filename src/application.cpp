@@ -166,15 +166,38 @@ namespace Application
 
     std::string extractFileNameWithoutExtension(const std::string& filePath)
     {
-        // Find the last slash to get the file name with extension
         size_t lastSlash = filePath.find_last_of("/\\");
         std::string fileNameWithExt = filePath.substr(lastSlash + 1);
 
-        // Find the last dot to remove the extension
         size_t lastDot = fileNameWithExt.find_last_of(".");
         std::string fileNameWithoutExt = fileNameWithExt.substr(0, lastDot);
 
         return fileNameWithoutExt;
+    }
+
+    std::vector<std::string> orderFilesByNumber(const std::vector<std::string>& files)
+    {
+        std::vector<std::string> orderedFiles;
+
+        std::map<int, std::string> orderedMap;
+
+        for (const auto& file : files)
+        {
+            std::string fileName = extractFileNameWithoutExtension(file);
+
+            std::string numberString = fileName.substr(fileName.find_last_of("_") + 1);
+
+            int number = std::stoi(numberString);
+
+            orderedMap[number] = file;
+        }
+
+        for (const auto& [key, value] : orderedMap)
+        {
+            orderedFiles.push_back(value);
+        }
+
+        return orderedFiles;
     }
 
     void Application::Update()
@@ -345,7 +368,7 @@ namespace Application
                     command = "rm -rf *.pgm";
                     exec(command.c_str());
 
-                    imageVideoPaths_ = findFilesWithExtension("../../test_images/pgm/" + video_name + "/", ".pgm");
+                    imageVideoPaths_ = orderFilesByNumber(findFilesWithExtension("../../test_images/pgm/" + video_name + "/", ".pgm"));
 
                     std::cout << "Found " << imageVideoPaths_.size() << " PGM files." << std::endl;
                 }
