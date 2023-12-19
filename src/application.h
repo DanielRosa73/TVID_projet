@@ -6,6 +6,7 @@
 #include "imgui_impl_opengl3.h"
 #include <stdio.h>
 #include <iostream>
+#include <filesystem>
 
 #include <stb_image.h>
 
@@ -46,7 +47,7 @@ namespace Application
 
             void LoadImage(const std::string& filename);
 
-            void SaveImageAsPPM(const std::string& outputPath);
+            void SaveImageAsPPM(const std::string& inputPath, const std::string& outputPath);
 
             inline GLFWwindow* GetWindow() { return window_; }
 

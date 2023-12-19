@@ -113,15 +113,23 @@ namespace Application
     void Application::Start()
     {}
 
-    std::string ReplaceFileExtension(const std::string& originalPath, const std::string& newExtension)
+    std::string changeExtension(const std::string& originalPath, const std::string& newExtension)
     {
-        size_t lastDotIndex = originalPath.find_last_of(".");
-        if (lastDotIndex == std::string::npos) {
-            return originalPath + newExtension;
+        std::filesystem::path pathObj(originalPath);
+
+        // Change the extension
+        pathObj.replace_extension(newExtension);
+
+        std::string newPath = pathObj.string();
+        size_t pos = newPath.find("/pgm/");
+        if (pos != std::string::npos)
+        {
+            newPath.replace(pos, 5, "/ppm/");
         }
 
-        return originalPath.substr(0, lastDotIndex) + newExtension;
+        return newPath;
     }
+
 
     void Application::Update()
     {
@@ -176,7 +184,7 @@ namespace Application
                 output_filePathName_ = const_cast<char*>(filePathName.c_str());
 
                 // Save the image
-                SaveImageAsPPM(output_filePathName_);
+                SaveImageAsPPM(input_filePathName_, output_filePathName_);
             }
 
             ImGuiFileDialog::Instance()->Close();
@@ -206,7 +214,7 @@ namespace Application
         if (textureID_ != 0)
         {
             ImGui::SetNextWindowPos(ImVec2(720, 20));
-            ImGui::SetNextWindowSize(ImVec2(150, 720));
+            ImGui::SetNextWindowSize(ImVec2(200, 720));
             if (ImGui::Begin("Image Info", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove))
             {
                 ImGui::Text("Image Info");
@@ -220,7 +228,7 @@ namespace Application
         else
         {
             ImGui::SetNextWindowPos(ImVec2(720, 20));
-            ImGui::SetNextWindowSize(ImVec2(150, 720));
+            ImGui::SetNextWindowSize(ImVec2(200, 720));
             if (ImGui::Begin("Image Info", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove))
             {
                 ImGui::Text("No image loaded");
@@ -230,17 +238,17 @@ namespace Application
 
         if (textureID_ != 0)
         {
-            ImGui::SetNextWindowPos(ImVec2(870, 20));
+            ImGui::SetNextWindowPos(ImVec2(920, 20));
             ImGui::SetNextWindowSize(ImVec2(150, 720));
             if (ImGui::Begin("Image To PPM", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove))
             {
                 if (ImGui::Button("Convert"))
                 {
-                    std::string outputPath = ReplaceFileExtension(input_filePathName_, ".ppm");
+                    std::string outputPath = changeExtension(input_filePathName_, ".ppm");
 
                     ConvertPGMtoPPM(input_filePathName_, outputPath);
 
-                    std::cout << "Saved PPM image to " << outputPath << std::endl;
+                    input_filePathName_ = const_cast<char*>(outputPath.c_str());
 
                     LoadImage(outputPath);
                 }
@@ -306,14 +314,27 @@ namespace Application
         imageInfo_.height = imageHeight;
         imageInfo_.depth = imageChannels;
 
+        if (imageChannels == 1)
+        {
+            imageInfo_.samplingMode = "Grayscale";
+        }
+        else if (imageChannels == 3)
+        {
+            imageInfo_.samplingMode = "RGB";
+        }
+        else if (imageChannels == 4)
+        {
+            imageInfo_.samplingMode = "RGBA";
+        }
+
         stbi_image_free(imageData);
     }
 
-    void Application::SaveImageAsPPM(const std::string& outputPath)
+    void Application::SaveImageAsPPM(const std::string& inputPath, const std::string& outputPath)
     {
         std::vector<unsigned char> ppmData(imageInfo_.width * imageInfo_.height * 3);
 
-        std::ifstream input(input_filePathName_, std::ios::binary);
+        std::ifstream input(inputPath, std::ios::binary);
         if (!input.is_open())
         {
             std::cerr << "Could not open the input file." << std::endl;
@@ -322,7 +343,8 @@ namespace Application
 
         std::string line;
         std::getline(input, line);
-        if (line != "P5")
+        std::string format = line;
+        if (line != "P5" && line != "P6")
         {
             std::cerr << "Unsupported image format!" << std::endl;
             return;
@@ -340,16 +362,30 @@ namespace Application
         input >> maxval;
         input.get();
 
-        std::vector<unsigned char> image(width * height);
-        std::vector<unsigned char> colorImage(width * height * 3);
+        std::vector<unsigned char> image;
+        if (format == "P5")
+        {
+            image = std::vector<unsigned char>(width * height);
+        }
+        else if (format == "P6")
+        {
+            image = std::vector<unsigned char>(width * height * 3);
+        }
 
         input.read(reinterpret_cast<char*>(image.data()), image.size());
 
         for (int i = 0; i < image.size(); i++)
         {
-            ppmData[i * 3] = image[i];
-            ppmData[i * 3 + 1] = image[i];
-            ppmData[i * 3 + 2] = image[i];
+            if (format == "P5")
+            {
+                ppmData[i * 3] = image[i];
+                ppmData[i * 3 + 1] = image[i];
+                ppmData[i * 3 + 2] = image[i];
+            }
+            else if (format == "P6")
+            {
+                ppmData[i] = image[i];
+            }
         }
 
         std::ofstream outFile(outputPath, std::ios::binary);
