@@ -113,11 +113,21 @@ namespace Application
     void Application::Start()
     {}
 
+    std::string ReplaceFileExtension(const std::string& originalPath, const std::string& newExtension)
+    {
+        size_t lastDotIndex = originalPath.find_last_of(".");
+        if (lastDotIndex == std::string::npos) {
+            return originalPath + newExtension;
+        }
+
+        return originalPath.substr(0, lastDotIndex) + newExtension;
+    }
+
     void Application::Update()
     {
         if (ImGui::BeginMainMenuBar())
         {
-            if (ImGui::BeginMenu("File"))
+            if (ImGui::BeginMenu("Menu"))
             {
                 if (ImGui::MenuItem("Open"))
                 {
@@ -156,7 +166,6 @@ namespace Application
             ImGuiFileDialog::Instance()->Close();
         }
 
-
         if (ImGuiFileDialog::Instance()->Display("SaveFileDlgKey"))
         {
             if (ImGuiFileDialog::Instance()->IsOk())
@@ -175,15 +184,79 @@ namespace Application
 
         if (textureID_ != 0)
         {
-            ImGui::Begin("Image");
-            ImGui::Image(reinterpret_cast<void*>(static_cast<intptr_t>(textureID_)), ImVec2(imageInfo_.width, imageInfo_.height));
-            ImGui::End();
+            ImGui::SetNextWindowPos(ImVec2(0, 20));
+            ImGui::SetNextWindowSize(ImVec2(720, 720));
+            if (ImGui::Begin("Image", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove))
+            {
+                ImGui::Image(reinterpret_cast<void*>(static_cast<intptr_t>(textureID_)), ImGui::GetContentRegionAvail());
+                ImGui::End();
+            }
         }
         else
         {
-            ImGui::Begin("Image");
-            ImGui::Text("No image loaded");
-            ImGui::End();
+            ImGui::SetNextWindowPos(ImVec2(0, 20));
+            ImGui::SetNextWindowSize(ImVec2(720, 720));
+            if (ImGui::Begin("Image", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove))
+            {
+                ImGui::Text("No image loaded");
+                ImGui::End();
+            }
+        }
+
+        if (textureID_ != 0)
+        {
+            ImGui::SetNextWindowPos(ImVec2(720, 20));
+            ImGui::SetNextWindowSize(ImVec2(150, 720));
+            if (ImGui::Begin("Image Info", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove))
+            {
+                ImGui::Text("Image Info");
+                ImGui::Text("Width: %d", imageInfo_.width);
+                ImGui::Text("Height: %d", imageInfo_.height);
+                ImGui::Text("Depth: %d", imageInfo_.depth);
+                ImGui::Text("Sampling Mode: %s", imageInfo_.samplingMode.c_str());
+                ImGui::End();
+            }
+        }
+        else
+        {
+            ImGui::SetNextWindowPos(ImVec2(720, 20));
+            ImGui::SetNextWindowSize(ImVec2(150, 720));
+            if (ImGui::Begin("Image Info", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove))
+            {
+                ImGui::Text("No image loaded");
+                ImGui::End();
+            }
+        }
+
+        if (textureID_ != 0)
+        {
+            ImGui::SetNextWindowPos(ImVec2(870, 20));
+            ImGui::SetNextWindowSize(ImVec2(150, 720));
+            if (ImGui::Begin("Image To PPM", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove))
+            {
+                if (ImGui::Button("Convert"))
+                {
+                    std::string outputPath = ReplaceFileExtension(input_filePathName_, ".ppm");
+
+                    ConvertPGMtoPPM(input_filePathName_, outputPath);
+
+                    std::cout << "Saved PPM image to " << outputPath << std::endl;
+
+                    LoadImage(outputPath);
+                }
+
+                ImGui::End();
+            }
+        }
+        else
+        {
+            ImGui::SetNextWindowPos(ImVec2(720, 20));
+            ImGui::SetNextWindowSize(ImVec2(300, 720));
+            if (ImGui::Begin("Image To PPM", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove))
+            {
+                ImGui::Text("No image loaded");
+                ImGui::End();
+            }
         }
     }
 
@@ -207,9 +280,20 @@ namespace Application
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_R8, imageWidth, imageHeight, 0, GL_RED, GL_UNSIGNED_BYTE, imageData);
-        GLint swizzleMask[] = {GL_RED, GL_RED, GL_RED, GL_ONE};
-        glTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_RGBA, swizzleMask);
+        if (imageChannels == 1)
+        {
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_R8, imageWidth, imageHeight, 0, GL_RED, GL_UNSIGNED_BYTE, imageData);
+            GLint swizzleMask[] = {GL_RED, GL_RED, GL_RED, GL_ONE};
+            glTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_RGBA, swizzleMask);
+        }
+        else if (imageChannels == 3)
+        {
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, imageWidth, imageHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, imageData);
+        }
+        else if (imageChannels == 4)
+        {
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, imageWidth, imageHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, imageData);
+        }
 
         GLenum err;
         while ((err = glGetError()) != GL_NO_ERROR)

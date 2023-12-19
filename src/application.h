@@ -54,7 +54,7 @@ namespace Application
             GLFWwindow* window_;
             ImVec4 clear_color_ = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 
-            ImageInfo imageInfo_;
+            ImageInfo imageInfo_ = { 0, 0, 0, "" };
 
             GLuint textureID_;
 
