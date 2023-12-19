@@ -130,6 +130,52 @@ namespace Application
         return newPath;
     }
 
+    void Application::exec(const char* cmd)
+    {
+        std::array<char, 128> buffer;
+        std::unique_ptr<FILE, decltype(&pclose)> pipe(popen(cmd, "r"), pclose);
+        if (!pipe) {
+            throw std::runtime_error("popen() failed!");
+        }
+
+        while (fgets(buffer.data(), buffer.size(), pipe.get()) != nullptr) {
+            imageVideoPaths_.push_back(buffer.data());
+        }
+    }
+
+    std::vector<std::string> findFilesWithExtension(const std::string& path, const std::string& extension)
+    {
+        std::vector<std::string> pgmFiles;
+        
+        try {
+            if (fs::exists(path) && fs::is_directory(path)) {
+                for (const auto& entry : fs::directory_iterator(path)) {
+                    if (entry.is_regular_file() && entry.path().extension() == extension) {
+                        pgmFiles.push_back(entry.path().string());
+                    }
+                }
+            } else {
+                std::cerr << "Path does not exist or is not a directory: " << path << '\n';
+            }
+        } catch (const fs::filesystem_error& e) {
+            std::cerr << e.what() << '\n';
+        }
+
+        return pgmFiles;
+    }
+
+    std::string extractFileNameWithoutExtension(const std::string& filePath)
+    {
+        // Find the last slash to get the file name with extension
+        size_t lastSlash = filePath.find_last_of("/\\");
+        std::string fileNameWithExt = filePath.substr(lastSlash + 1);
+
+        // Find the last dot to remove the extension
+        size_t lastDot = fileNameWithExt.find_last_of(".");
+        std::string fileNameWithoutExt = fileNameWithExt.substr(0, lastDot);
+
+        return fileNameWithoutExt;
+    }
 
     void Application::Update()
     {
@@ -137,9 +183,14 @@ namespace Application
         {
             if (ImGui::BeginMenu("Menu"))
             {
-                if (ImGui::MenuItem("Open"))
+                if (ImGui::MenuItem("Open Image"))
                 {
                     ImGuiFileDialog::Instance()->OpenDialog("ChooseFileDlgKey", "Choose File", ".pgm", ".");
+                }
+
+                if (ImGui::MenuItem("Open Video"))
+                {
+                    ImGuiFileDialog::Instance()->OpenDialog("ChooseVideoDlgKey", "Choose Video", ".m2v", ".");
                 }
 
                 if (ImGui::MenuItem("Save"))
@@ -190,13 +241,13 @@ namespace Application
             ImGuiFileDialog::Instance()->Close();
         }
 
-        if (textureID_ != 0)
+        if (textureImageID_ != 0)
         {
             ImGui::SetNextWindowPos(ImVec2(0, 20));
             ImGui::SetNextWindowSize(ImVec2(720, 720));
             if (ImGui::Begin("Image", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove))
             {
-                ImGui::Image(reinterpret_cast<void*>(static_cast<intptr_t>(textureID_)), ImGui::GetContentRegionAvail());
+                ImGui::Image(reinterpret_cast<void*>(static_cast<intptr_t>(textureImageID_)), ImGui::GetContentRegionAvail());
                 ImGui::End();
             }
         }
@@ -211,7 +262,7 @@ namespace Application
             }
         }
 
-        if (textureID_ != 0)
+        if (textureImageID_ != 0)
         {
             ImGui::SetNextWindowPos(ImVec2(720, 20));
             ImGui::SetNextWindowSize(ImVec2(200, 720));
@@ -236,21 +287,23 @@ namespace Application
             }
         }
 
-        if (textureID_ != 0)
+        if (textureImageID_ != 0)
         {
             ImGui::SetNextWindowPos(ImVec2(920, 20));
-            ImGui::SetNextWindowSize(ImVec2(150, 720));
-            if (ImGui::Begin("Image To PPM", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove))
+            ImGui::SetNextWindowSize(ImVec2(210, 720));
+            if (ImGui::Begin("Settings", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove))
             {
-                if (ImGui::Button("Convert"))
+                if (ImGui::Button("Convert Image to PPM"))
                 {
                     std::string outputPath = changeExtension(input_filePathName_, ".ppm");
+
+                    std::cout << "Output path: " << outputPath << std::endl;
 
                     ConvertPGMtoPPM(input_filePathName_, outputPath);
 
                     input_filePathName_ = const_cast<char*>(outputPath.c_str());
 
-                    LoadImage(outputPath);
+                    LoadImage(input_filePathName_);
                 }
 
                 ImGui::End();
@@ -258,13 +311,89 @@ namespace Application
         }
         else
         {
-            ImGui::SetNextWindowPos(ImVec2(720, 20));
-            ImGui::SetNextWindowSize(ImVec2(300, 720));
-            if (ImGui::Begin("Image To PPM", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove))
+            ImGui::SetNextWindowPos(ImVec2(930, 20));
+            ImGui::SetNextWindowSize(ImVec2(210, 720));
+            if (ImGui::Begin("Settings", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove))
             {
                 ImGui::Text("No image loaded");
                 ImGui::End();
             }
+        }
+
+        if (ImGuiFileDialog::Instance()->Display("ChooseVideoDlgKey"))
+        {
+            if (ImGuiFileDialog::Instance()->IsOk())
+            {
+                std::string filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
+                std::string filePath = ImGuiFileDialog::Instance()->GetCurrentPath();
+
+                std::cout << "Video file path: " << filePathName << std::endl;
+
+                // Load the video
+                try
+                {
+                    std::string command = "../../tools/src/mpeg2dec -o pgm " + filePathName;
+                    exec(command.c_str());
+
+                    std::string video_name = extractFileNameWithoutExtension(filePathName);
+                    command = "mkdir -p ../../test_images/pgm/" + video_name + "/";
+                    exec(command.c_str());
+
+                    command = "mv *.pgm ../../test_images/pgm/" + video_name + "/";
+                    exec(command.c_str());
+
+                    command = "rm -rf *.pgm";
+                    exec(command.c_str());
+
+                    imageVideoPaths_ = findFilesWithExtension("../../test_images/pgm/" + video_name + "/", ".pgm");
+
+                    std::cout << "Found " << imageVideoPaths_.size() << " PGM files." << std::endl;
+                }
+                catch(const std::exception& e)
+                {
+                    std::cerr << e.what() << '\n';
+                }
+                
+            }
+
+            ImGuiFileDialog::Instance()->Close();
+        }
+
+        ImGui::SetNextWindowPos(ImVec2(1130, 20));
+        ImGui::SetNextWindowSize(ImVec2(720, 720));
+        if (ImGui::Begin("Video", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove))
+        {
+            if (imageVideoPaths_.size() > 0)
+            {
+                static int currentImageIndex = -1;
+                int previousImageIndex = currentImageIndex;
+
+                ImGui::SliderInt("Image Index", &currentImageIndex, 0, imageVideoPaths_.size() - 1);
+
+                if (currentImageIndex != previousImageIndex)
+                {
+                    std::string imagePath = imageVideoPaths_[currentImageIndex];
+
+                    input_filePathName_ = imagePath;
+
+                    LoadVideo(imagePath);
+                }
+
+                if (textureVideoID_ != 0)
+                {
+                    ImGui::Image(reinterpret_cast<void*>(static_cast<intptr_t>(textureVideoID_)), ImGui::GetContentRegionAvail());
+                }
+                else
+                {
+                    ImGui::Text("No image loaded");
+                }
+            }
+            else
+            {
+                ImGui::Text("No video loaded");
+            }
+
+            ImGui::End();
         }
     }
 
@@ -309,7 +438,70 @@ namespace Application
             std::cerr << "OpenGL error: " << err << std::endl;
         }
 
-        textureID_ = textureID;
+        textureImageID_ = textureID;
+        imageInfo_.width = imageWidth;
+        imageInfo_.height = imageHeight;
+        imageInfo_.depth = imageChannels;
+
+        if (imageChannels == 1)
+        {
+            imageInfo_.samplingMode = "Grayscale";
+        }
+        else if (imageChannels == 3)
+        {
+            imageInfo_.samplingMode = "RGB";
+        }
+        else if (imageChannels == 4)
+        {
+            imageInfo_.samplingMode = "RGBA";
+        }
+
+        stbi_image_free(imageData);
+    }
+
+
+    void Application::LoadVideo(const std::string& filename)
+    {
+        int imageWidth, imageHeight, imageChannels;
+        unsigned char* imageData = stbi_load(filename.c_str(), &imageWidth, &imageHeight, &imageChannels, 0);
+
+        if (imageData == nullptr)
+        {
+            fprintf(stderr, "Failed to load image: %s\n", stbi_failure_reason());
+            return;
+        }
+
+        GLuint textureID;
+        glGenTextures(1, &textureID);
+        glBindTexture(GL_TEXTURE_2D, textureID);
+
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+        if (imageChannels == 1)
+        {
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_R8, imageWidth, imageHeight, 0, GL_RED, GL_UNSIGNED_BYTE, imageData);
+            GLint swizzleMask[] = {GL_RED, GL_RED, GL_RED, GL_ONE};
+            glTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_RGBA, swizzleMask);
+        }
+        else if (imageChannels == 3)
+        {
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, imageWidth, imageHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, imageData);
+        }
+        else if (imageChannels == 4)
+        {
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, imageWidth, imageHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, imageData);
+        }
+
+        GLenum err;
+        while ((err = glGetError()) != GL_NO_ERROR)
+        {
+            std::cerr << "OpenGL error: " << err << std::endl;
+        }
+
+        textureVideoID_ = textureID;
         imageInfo_.width = imageWidth;
         imageInfo_.height = imageHeight;
         imageInfo_.depth = imageChannels;

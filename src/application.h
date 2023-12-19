@@ -32,6 +32,8 @@ static void glfw_error_callback(int error, const char* description)
     fprintf(stderr, "GLFW Error %d: %s\n", error, description);
 }
 
+namespace fs = std::filesystem;
+
 namespace Application
 {
     class Application
@@ -43,9 +45,13 @@ namespace Application
             void Run();
 
             void Start();
+
+            void exec(const char* cmd);
+
             void Update();
 
             void LoadImage(const std::string& filename);
+            void LoadVideo(const std::string& filename);
 
             void SaveImageAsPPM(const std::string& inputPath, const std::string& outputPath);
 
@@ -57,9 +63,12 @@ namespace Application
 
             ImageInfo imageInfo_ = { 0, 0, 0, "" };
 
-            GLuint textureID_;
+            GLuint textureImageID_;
+            GLuint textureVideoID_;
 
             std::string input_filePathName_;
             char* output_filePathName_;
+
+            std::vector<std::string> imageVideoPaths_;
     };
 }
