@@ -69,9 +69,13 @@ namespace Application
             std::string input_filePathName_;
             char* output_filePathName_;
 
-            std::vector<std::string> imageVideoPaths_;
+            std::vector<std::string> imageVideoPathsPGM_;
+            std::vector<std::string> imageVideoPathsPPM_;
 
             float ms_ = 60.0f;
             float fps_ = ms_ / 1000.0f;
+
+            bool isVideoPGM_ = false;
+            bool isVideoPPM_ = false;
     };
 }

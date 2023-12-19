@@ -139,7 +139,7 @@ namespace Application
         }
 
         while (fgets(buffer.data(), buffer.size(), pipe.get()) != nullptr) {
-            imageVideoPaths_.push_back(buffer.data());
+            imageVideoPathsPGM_.push_back(buffer.data());
         }
     }
 
@@ -337,6 +337,31 @@ namespace Application
                     LoadImage(input_filePathName_);
                 }
 
+                if (ImGui::Button("Convert Video to PPM"))
+                {
+                    imageVideoPathsPPM_.clear();
+
+                    isVideoPGM_ = false;
+                    isVideoPPM_ = true;
+
+                    for (const std::string& pgmFilePath : imageVideoPathsPGM_)
+                    {
+                        try
+                        {
+                            std::string ppmFilePath = changeExtension(pgmFilePath, ".ppm");
+                            ConvertPGMtoPPM(pgmFilePath, ppmFilePath);
+                            std::cout << "Converted " << pgmFilePath << " to " << ppmFilePath << std::endl;
+                            imageVideoPathsPPM_.push_back(ppmFilePath);
+                        }
+                        catch (const std::exception& e)
+                        {
+                            std::cerr << "Error converting to PPM: " << e.what() << '\n';
+                        }
+                    }
+
+                    std::cout << "Conversion to PPM completed." << std::endl;
+                }
+
                 ImGui::End();
             }
         }
@@ -360,6 +385,9 @@ namespace Application
 
                 std::cout << "Video file path: " << filePathName << std::endl;
 
+                isVideoPGM_ = true;
+                isVideoPPM_ = false;
+
                 // Load the video
                 try
                 {
@@ -376,9 +404,9 @@ namespace Application
                     command = "rm -rf *.pgm";
                     exec(command.c_str());
 
-                    imageVideoPaths_ = orderFilesByNumber(findFilesWithExtension("../../test_images/pgm/" + video_name + "/", ".pgm"));
+                    imageVideoPathsPGM_ = orderFilesByNumber(findFilesWithExtension("../../test_images/pgm/" + video_name + "/", ".pgm"));
 
-                    std::cout << "Found " << imageVideoPaths_.size() << " PGM files." << std::endl;
+                    std::cout << "Found " << imageVideoPathsPGM_.size() << " PGM files." << std::endl;
                 }
                 catch(const std::exception& e)
                 {
@@ -394,7 +422,7 @@ namespace Application
         ImGui::SetNextWindowSize(ImVec2(720, 720));
         if (ImGui::Begin("Video", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove))
         {
-            if (imageVideoPaths_.size() > 0)
+            if (imageVideoPathsPGM_.size() > 0)
             {
                 static bool autoPlay = false;
                 static float lastTime = 0.0f;
@@ -412,27 +440,51 @@ namespace Application
                     {
                         lastTime = currentTime;
 
-                        currentImageIndex = (currentImageIndex + 1) % imageVideoPaths_.size();
+                        currentImageIndex = (currentImageIndex + 1) % imageVideoPathsPGM_.size();
 
-                        std::string imagePath = imageVideoPaths_[currentImageIndex];
+                        if (isVideoPGM_)
+                        {
+                            std::string imagePath = imageVideoPathsPGM_[currentImageIndex];
 
-                        input_filePathName_ = imagePath;
+                            input_filePathName_ = imagePath;
 
-                        LoadVideo(imagePath);
+                            LoadVideo(imagePath);
+                        }
+
+                        if (isVideoPPM_)
+                        {
+                            std::string imagePath = imageVideoPathsPPM_[currentImageIndex];
+
+                            input_filePathName_ = imagePath;
+
+                            LoadVideo(imagePath);
+                        }
                     }
                 }
                 else
                 {
 
-                    ImGui::SliderInt("Image Index", &currentImageIndex, 0, imageVideoPaths_.size() - 1);
+                    ImGui::SliderInt("Image Index", &currentImageIndex, 0, imageVideoPathsPGM_.size() - 1);
 
                     if (currentImageIndex != previousImageIndex)
                     {
-                        std::string imagePath = imageVideoPaths_[currentImageIndex];
+                        if (isVideoPGM_)
+                        {
+                            std::string imagePath = imageVideoPathsPGM_[currentImageIndex];
 
-                        input_filePathName_ = imagePath;
+                            input_filePathName_ = imagePath;
 
-                        LoadVideo(imagePath);
+                            LoadVideo(imagePath);
+                        }
+
+                        if (isVideoPPM_)
+                        {
+                            std::string imagePath = imageVideoPathsPPM_[currentImageIndex];
+
+                            input_filePathName_ = imagePath;
+
+                            LoadVideo(imagePath);
+                        }
                     }
                 }
 
