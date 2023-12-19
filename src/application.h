@@ -70,5 +70,8 @@ namespace Application
             char* output_filePathName_;
 
             std::vector<std::string> imageVideoPaths_;
+
+            float ms_ = 60.0f;
+            float fps_ = 1.0f / ms_;
     };
 }

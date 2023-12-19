@@ -32,7 +32,7 @@ namespace Application
 #endif
 
         // Create window with graphics context
-        window_ = glfwCreateWindow(1920, 1080, "TVID Project", nullptr, nullptr);
+        window_ = glfwCreateWindow(1920, 740, "TVID Project", nullptr, nullptr);
         if (window_ == nullptr)
             fprintf(stderr, "Failed to create GLFW window\n");
         glfwMakeContextCurrent(window_);
@@ -289,13 +289,20 @@ namespace Application
         {
             ImGui::SetNextWindowPos(ImVec2(720, 20));
             ImGui::SetNextWindowSize(ImVec2(200, 720));
-            if (ImGui::Begin("Image Info", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove))
+            if (ImGui::Begin("Info", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove))
             {
                 ImGui::Text("Image Info");
                 ImGui::Text("Width: %d", imageInfo_.width);
                 ImGui::Text("Height: %d", imageInfo_.height);
                 ImGui::Text("Depth: %d", imageInfo_.depth);
                 ImGui::Text("Sampling Mode: %s", imageInfo_.samplingMode.c_str());
+
+                ImGui::Separator();
+
+                ImGui::Text("FPS and ms Info of Video");
+                ImGui::Text("ms: %f", ms_);
+                ImGui::SliderFloat("ms", &ms_, 0.0f, 100.0f);
+
                 ImGui::End();
             }
         }
@@ -388,18 +395,44 @@ namespace Application
         {
             if (imageVideoPaths_.size() > 0)
             {
+                static bool autoPlay = false;
+                static float lastTime = 0.0f;
+                float currentTime = ImGui::GetTime();
+                fps_ = 1.0f / ms_;
+
                 static int currentImageIndex = -1;
                 int previousImageIndex = currentImageIndex;
 
-                ImGui::SliderInt("Image Index", &currentImageIndex, 0, imageVideoPaths_.size() - 1);
+                ImGui::Checkbox("Auto Play", &autoPlay);
 
-                if (currentImageIndex != previousImageIndex)
+                if (autoPlay)
                 {
-                    std::string imagePath = imageVideoPaths_[currentImageIndex];
+                    if (currentTime - lastTime >= fps_)
+                    {
+                        lastTime = currentTime;
 
-                    input_filePathName_ = imagePath;
+                        currentImageIndex = (currentImageIndex + 1) % imageVideoPaths_.size();
 
-                    LoadVideo(imagePath);
+                        std::string imagePath = imageVideoPaths_[currentImageIndex];
+
+                        input_filePathName_ = imagePath;
+
+                        LoadVideo(imagePath);
+                    }
+                }
+                else
+                {
+
+                    ImGui::SliderInt("Image Index", &currentImageIndex, 0, imageVideoPaths_.size() - 1);
+
+                    if (currentImageIndex != previousImageIndex)
+                    {
+                        std::string imagePath = imageVideoPaths_[currentImageIndex];
+
+                        input_filePathName_ = imagePath;
+
+                        LoadVideo(imagePath);
+                    }
                 }
 
                 if (textureVideoID_ != 0)
