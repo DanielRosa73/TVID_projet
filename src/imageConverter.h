@@ -53,10 +53,6 @@ inline void ConvertPGMtoPPM(const std::string &inputFilename, const std::string 
     std::vector<unsigned char> uComponent(image.begin() + yHeight * width, image.begin() + yHeight * width + uvHeight * uvWidth);
     std::vector<unsigned char> vComponent(image.begin() + yHeight * width + uvHeight * uvWidth, image.end());
 
-    std::cout << "Y component size: " << yComponent.size() << std::endl;
-    std::cout << "U component size: " << uComponent.size() << std::endl;
-    std::cout << "V component size: " << vComponent.size() << std::endl;
-
     // Fill the components with the correct values
     for (int i = 0; i < yHeight; i++)
     {
