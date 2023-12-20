@@ -23,4 +23,4 @@ add_subdirectory(imgui)
 
 add_executable(tvid_project main.cpp application.cpp)
 
-target_link_libraries(tvid_project imgui_lib imGuiFileDialog ${OPENGL_LIBRARIES} glfw stb_image)
+target_link_libraries(tvid_project imgui_lib imGuiFileDialog ${OPENGL_LIBRARIES} glfw stb_image dl)
