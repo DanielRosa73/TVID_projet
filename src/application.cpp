@@ -424,22 +424,38 @@ namespace Application
                     isVideoPPM_ = false;
                     isVideoBOB_ = true;
 
-                    for (const std::string& ppmFilePath : imageVideoPathsPPM_)
+                    if (countFilesInFolder("../../test_images/bob/" + findFolderName(imageVideoPathsPPM_[0]) + "/") == imageVideoPathsPPM_.size() * 2)
                     {
-                        try
+                        std::cout << "PPM files for bob already exist." << std::endl;
+
+                        for (const std::string& ppmFilePath : imageVideoPathsPPM_)
                         {
                             std::string bobFilePath_1 = "../../test_images/bob/bw_numbers/" + std::to_string(counter) + ".ppm";
                             std::string bobFilePath_2 = "../../test_images/bob/bw_numbers/" + std::to_string(counter + 1) + ".ppm";
                             counter += 2;
-                            BobOutput bobOutput = { bobFilePath_1, bobFilePath_2 };
-                            bob_deinterlacing(ppmFilePath, bobOutput);
-                            std::cout << "Converted to BOB: " << bobFilePath_1 << " and " << bobFilePath_2 << std::endl;
                             imageVideoPathsBOB_.push_back(bobFilePath_1);
                             imageVideoPathsBOB_.push_back(bobFilePath_2);
                         }
-                        catch (const std::exception& e)
+                    }
+                    else
+                    {
+                        for (const std::string& ppmFilePath : imageVideoPathsPPM_)
                         {
-                            std::cerr << "Error converting to BOB: " << e.what() << '\n';
+                            try
+                            {
+                                std::string bobFilePath_1 = "../../test_images/bob/bw_numbers/" + std::to_string(counter) + ".ppm";
+                                std::string bobFilePath_2 = "../../test_images/bob/bw_numbers/" + std::to_string(counter + 1) + ".ppm";
+                                counter += 2;
+                                BobOutput bobOutput = { bobFilePath_1, bobFilePath_2 };
+                                bob_deinterlacing(ppmFilePath, bobOutput);
+                                std::cout << "Converted to BOB: " << bobFilePath_1 << " and " << bobFilePath_2 << std::endl;
+                                imageVideoPathsBOB_.push_back(bobFilePath_1);
+                                imageVideoPathsBOB_.push_back(bobFilePath_2);
+                            }
+                            catch (const std::exception& e)
+                            {
+                                std::cerr << "Error converting to BOB: " << e.what() << '\n';
+                            }
                         }
                     }
 
@@ -479,8 +495,6 @@ namespace Application
                     std::string command = "../../tools/src/mpeg2dec -o pgm " + filePathName;
                     exec(command.c_str());
 
-                    exec("rm -rf ../../tools/frame_period.txt");
-
                     std::string fps_path = "../../tools/frame_period.txt";
                     std::ifstream fps_file(fps_path);
                     std::string fps_string;
@@ -500,8 +514,6 @@ namespace Application
                     }
 
                     ms_ = 1000.0f / fps_;
-
-                    exec("rm -rf ../../tools/frame_period.txt");
 
                     std::string video_name = extractFileNameWithoutExtension(filePathName);
                     command = "mkdir -p ../../test_images/pgm/" + video_name + "/";
