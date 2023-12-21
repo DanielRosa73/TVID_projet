@@ -243,7 +243,7 @@ namespace Application
 
                 if (ImGui::MenuItem("Open Video"))
                 {
-                    ImGuiFileDialog::Instance()->OpenDialog("ChooseVideoDlgKey", "Choose Video", ".ts,.m2v", ".");
+                    ImGuiFileDialog::Instance()->OpenDialog("ChooseVideoDlgKey", "Choose Video", ".m2v", ".");
                 }
 
                 if (ImGui::MenuItem("Save"))
@@ -359,7 +359,7 @@ namespace Application
                     std::string command = "mkdir -p ../../test_images/ppm/" + findFolderName(input_filePathName_) + "/";
                     std::cout << "Command: " << command << std::endl;
                     exec(command.c_str());
-                    
+
                     std::string outputPath = changeExtension(input_filePathName_, ".ppm");
 
                     std::cout << "Output path: " << outputPath << std::endl;
@@ -383,7 +383,7 @@ namespace Application
                     std::cout << "Command: " << command << std::endl;
                     exec(command.c_str());
 
-                    if (countFilesInFolder("../../test_images/ppm/" + findFolderName(imageVideoPathsPGM_[0]) + "/") == imageVideoPathsPGM_.size());
+                    if (countFilesInFolder("../../test_images/ppm/" + findFolderName(imageVideoPathsPGM_[0]) + "/") == imageVideoPathsPGM_.size())
                     {
                         std::cout << "PPM files already exist." << std::endl;
 
@@ -392,24 +392,22 @@ namespace Application
                             std::string ppmFilePath = changeExtension(pgmFilePath, ".ppm");
                             imageVideoPathsPPM_.push_back(ppmFilePath);
                         }
-
-                        ImGui::End();
-
-                        return;
                     }
-
-                    for (const std::string& pgmFilePath : imageVideoPathsPGM_)
+                    else
                     {
-                        try
+                        for (const std::string& pgmFilePath : imageVideoPathsPGM_)
                         {
-                            std::string ppmFilePath = changeExtension(pgmFilePath, ".ppm");
-                            ConvertPGMtoPPM(pgmFilePath, ppmFilePath);
-                            std::cout << "Converted " << pgmFilePath << " to " << ppmFilePath << std::endl;
-                            imageVideoPathsPPM_.push_back(ppmFilePath);
-                        }
-                        catch (const std::exception& e)
-                        {
-                            std::cerr << "Error converting to PPM: " << e.what() << '\n';
+                            try
+                            {
+                                std::string ppmFilePath = changeExtension(pgmFilePath, ".ppm");
+                                ConvertPGMtoPPM(pgmFilePath, ppmFilePath);
+                                std::cout << "Converted " << pgmFilePath << " to " << ppmFilePath << std::endl;
+                                imageVideoPathsPPM_.push_back(ppmFilePath);
+                            }
+                            catch (const std::exception& e)
+                            {
+                                std::cerr << "Error converting to PPM: " << e.what() << '\n';
+                            }
                         }
                     }
 
@@ -481,6 +479,8 @@ namespace Application
                     std::string command = "../../tools/src/mpeg2dec -o pgm " + filePathName;
                     exec(command.c_str());
 
+                    exec("rm -rf ../../tools/frame_period.txt");
+
                     std::string fps_path = "../../tools/frame_period.txt";
                     std::ifstream fps_file(fps_path);
                     std::string fps_string;
@@ -489,7 +489,7 @@ namespace Application
 
                     std::cout << "FPS: " << fps_string << std::endl;
 
-                    if (fps_string.empty())
+                    if (fps_string.empty() || fps_file.fail())
                     {
                         std::cerr << "Could not read FPS from file: " << fps_path << std::endl;
                         fps_ = 25.0f;
@@ -500,6 +500,8 @@ namespace Application
                     }
 
                     ms_ = 1000.0f / fps_;
+
+                    exec("rm -rf ../../tools/frame_period.txt");
 
                     std::string video_name = extractFileNameWithoutExtension(filePathName);
                     command = "mkdir -p ../../test_images/pgm/" + video_name + "/";

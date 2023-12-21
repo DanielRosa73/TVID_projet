@@ -67,10 +67,10 @@ inline BobOutput bob_deinterlacing(const std::string& inputFilename, const BobOu
                 frame1[i * width * 3 + j] = image[i * width * 3 + j];
                 frame1[(i + 1) * width * 3 + j] = image[i * width * 3 + j];
             }
-            else
+            else if (i % 2 == 1 && i != height - 1)
             {
                 frame2[i * width * 3 + j] = image[i * width * 3 + j];
-                frame2[(i - 1) * width * 3 + j] = image[i * width * 3 + j];
+                frame2[(i + 1) * width * 3 + j] = image[i * width * 3 + j];
             }
         }
     }
