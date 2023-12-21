@@ -4,8 +4,16 @@ project(tvid_project LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+include(FetchContent)
+
 find_package(OpenGL REQUIRED)
-find_package(glfw3 3.3 REQUIRED)
+
+FetchContent_Declare(
+        glfw3
+        URL https://github.com/glfw/glfw/releases/download/3.3.8/glfw-3.3.8.zip
+)
+
+FetchContent_MakeAvailable(glfw3)
 
 include_directories(imgui/sources)
 include_directories(imgui/backend)
