@@ -71,8 +71,8 @@ namespace Application
             std::vector<std::string> imageVideoPathsPPM_;
             std::vector<std::string> imageVideoPathsBOB_;
 
-            float ms_ = 60.0f;
-            float fps_ = ms_ / 1000.0f;
+            float ms_ = 0.0f;
+            float fps_ = 0.0f;
 
             bool isVideoPGM_ = false;
             bool isVideoPPM_ = false;

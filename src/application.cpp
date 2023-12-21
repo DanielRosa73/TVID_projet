@@ -301,7 +301,7 @@ namespace Application
 
                 ImGui::Separator();
 
-                ImGui::Text("FPS and ms Info of Video");
+                ImGui::Text("Fps and ms Info of Video");
                 ImGui::Text("ms: %f", ms_);
                 ImGui::SliderFloat("ms", &ms_, 0.1f, 1000.0f);
                 ImGui::Text("fps: %f", 1000.0f / ms_);
