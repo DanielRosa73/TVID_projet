@@ -241,11 +241,6 @@ namespace Application
                     ImGuiFileDialog::Instance()->OpenDialog("ChooseVideoDlgKey", "Choose Video", ".m2v", ".");
                 }
 
-                if (ImGui::MenuItem("Save"))
-                {
-                    ImGuiFileDialog::Instance()->OpenDialog("SaveFileDlgKey", "Save File", ".ppm", ".");
-                }
-
                 if (ImGui::MenuItem("Exit"))
                 {
                     glfwSetWindowShouldClose(window_, true);
@@ -255,22 +250,6 @@ namespace Application
             }
 
             ImGui::EndMainMenuBar();
-        }
-
-        if (ImGuiFileDialog::Instance()->Display("SaveFileDlgKey"))
-        {
-            if (ImGuiFileDialog::Instance()->IsOk())
-            {
-                std::string filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
-                std::string filePath = ImGuiFileDialog::Instance()->GetCurrentPath();
-
-                output_filePathName_ = const_cast<char*>(filePathName.c_str());
-
-                // Save the image
-                SaveImageAsPPM(input_filePathName_, output_filePathName_);
-            }
-
-            ImGuiFileDialog::Instance()->Close();
         }
 
         if (textureID_ != 0)
@@ -508,8 +487,6 @@ namespace Application
                         {
                             std::string imagePath = imageVideoPathsPGM_[currentImageIndex];
 
-                            input_filePathName_ = imagePath;
-
                             LoadImage(imagePath);
                         }
 
@@ -517,16 +494,12 @@ namespace Application
                         {
                             std::string imagePath = imageVideoPathsPPM_[currentImageIndex];
 
-                            input_filePathName_ = imagePath;
-
                             LoadImage(imagePath);
                         }
 
                         if (isVideoBOB_)
                         {
                             std::string imagePath = imageVideoPathsBOB_[currentImageIndex];
-
-                            input_filePathName_ = imagePath;
 
                             LoadImage(imagePath);
                         }
@@ -543,8 +516,6 @@ namespace Application
                         {
                             std::string imagePath = imageVideoPathsPGM_[currentImageIndex];
 
-                            input_filePathName_ = imagePath;
-
                             LoadImage(imagePath);
                         }
 
@@ -552,16 +523,12 @@ namespace Application
                         {
                             std::string imagePath = imageVideoPathsPPM_[currentImageIndex];
 
-                            input_filePathName_ = imagePath;
-
                             LoadImage(imagePath);
                         }
 
                         if (isVideoBOB_)
                         {
                             std::string imagePath = imageVideoPathsBOB_[currentImageIndex];
-
-                            input_filePathName_ = imagePath;
 
                             LoadImage(imagePath);
                         }

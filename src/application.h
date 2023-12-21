@@ -65,9 +65,6 @@ namespace Application
 
             GLuint textureID_;
 
-            std::string input_filePathName_;
-            char* output_filePathName_;
-
             std::vector<std::string> imageVideoPathsPGM_;
             std::vector<std::string> imageVideoPathsPPM_;
             std::vector<std::string> imageVideoPathsBOB_;
