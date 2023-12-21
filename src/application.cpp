@@ -271,6 +271,10 @@ namespace Application
                 ImGui::SliderFloat("ms", &ms_, 0.1f, 1000.0f);
                 ImGui::Text("fps: %f", 1000.0f / ms_);
 
+                ImGui::Separator();
+
+                ImGui::Checkbox("Auto Play", &autoPlay_);
+
                 ImGui::End();
             }
         }
@@ -466,7 +470,6 @@ namespace Application
         {
             if (imageVideoPathsPGM_.size() > 0)
             {
-                static bool autoPlay = false;
                 static float lastTime = 0.0f;
                 float currentTime = ImGui::GetTime();
                 fps_ = ms_ / 1000.0f;
@@ -474,9 +477,7 @@ namespace Application
                 static int currentImageIndex = -1;
                 int previousImageIndex = currentImageIndex;
 
-                ImGui::Checkbox("Auto Play", &autoPlay);
-
-                if (autoPlay)
+                if (autoPlay_)
                 {
                     if (currentTime - lastTime >= fps_)
                     {

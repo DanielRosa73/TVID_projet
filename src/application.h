@@ -75,5 +75,7 @@ namespace Application
             bool isVideoPGM_ = false;
             bool isVideoPPM_ = false;
             bool isVideoBOB_ = false;
+
+            bool autoPlay_ = false;
     };
 }
