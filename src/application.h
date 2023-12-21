@@ -26,6 +26,7 @@
 
 #include "get_info.h"
 #include "imageConverter.h"
+#include "bob.h"
 
 static void glfw_error_callback(int error, const char* description)
 {
@@ -71,11 +72,13 @@ namespace Application
 
             std::vector<std::string> imageVideoPathsPGM_;
             std::vector<std::string> imageVideoPathsPPM_;
+            std::vector<std::string> imageVideoPathsBOB_;
 
             float ms_ = 60.0f;
             float fps_ = ms_ / 1000.0f;
 
             bool isVideoPGM_ = false;
             bool isVideoPPM_ = false;
+            bool isVideoBOB_ = false;
     };
 }

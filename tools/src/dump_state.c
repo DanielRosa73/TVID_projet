@@ -382,6 +382,8 @@ void dump_state (FILE * f, mpeg2_state_t state, const mpeg2_info_t * info,
 	fprintf (f, " fields %d", pic->nb_fields);
 	if (pic->flags & PIC_FLAG_TOP_FIELD_FIRST)
 	    fprintf (f, " TFF");
+	if (pic->flags & PIC_FLAG_REPEAT_FIRST_FIELD)
+		fprintf (f, " RFF");
 	if (pic->flags & PIC_FLAG_TAGS)
 	    fprintf (f, " pts %08x dts %08x", pic->tag, pic->tag2);
 	fprintf (f, " time_ref %d", pic->temporal_reference);

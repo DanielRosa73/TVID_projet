@@ -343,6 +343,7 @@ namespace Application
 
                     isVideoPGM_ = false;
                     isVideoPPM_ = true;
+                    isVideoBOB_ = false;
 
                     for (const std::string& pgmFilePath : imageVideoPathsPGM_)
                     {
@@ -360,6 +361,38 @@ namespace Application
                     }
 
                     std::cout << "Conversion to PPM completed." << std::endl;
+                }
+
+                if (ImGui::Button("BOB Deinterlacing"))
+                {   
+                    imageVideoPathsBOB_.clear();
+
+                    int counter = 0;
+
+                    isVideoPGM_ = false;
+                    isVideoPPM_ = false;
+                    isVideoBOB_ = true;
+
+                    for (const std::string& ppmFilePath : imageVideoPathsPPM_)
+                    {
+                        try
+                        {
+                            std::string bobFilePath_1 = "../../test_images/bob/bw_numbers/" + std::to_string(counter) + ".ppm";
+                            std::string bobFilePath_2 = "../../test_images/bob/bw_numbers/" + std::to_string(counter + 1) + ".ppm";
+                            counter += 2;
+                            BobOutput bobOutput = { bobFilePath_1, bobFilePath_2 };
+                            bob_deinterlacing(ppmFilePath, bobOutput);
+                            std::cout << "Converted to BOB: " << bobFilePath_1 << " and " << bobFilePath_2 << std::endl;
+                            imageVideoPathsBOB_.push_back(bobFilePath_1);
+                            imageVideoPathsBOB_.push_back(bobFilePath_2);
+                        }
+                        catch (const std::exception& e)
+                        {
+                            std::cerr << "Error converting to BOB: " << e.what() << '\n';
+                        }
+                    }
+
+                    std::cout << "Conversion to BOB completed." << std::endl;
                 }
 
                 ImGui::End();
@@ -387,6 +420,7 @@ namespace Application
 
                 isVideoPGM_ = true;
                 isVideoPPM_ = false;
+                isVideoBOB_ = false;
 
                 // Load the video
                 try
@@ -459,6 +493,15 @@ namespace Application
 
                             LoadVideo(imagePath);
                         }
+
+                        if (isVideoBOB_)
+                        {
+                            std::string imagePath = imageVideoPathsBOB_[currentImageIndex];
+
+                            input_filePathName_ = imagePath;
+
+                            LoadVideo(imagePath);
+                        }
                     }
                 }
                 else
@@ -480,6 +523,15 @@ namespace Application
                         if (isVideoPPM_)
                         {
                             std::string imagePath = imageVideoPathsPPM_[currentImageIndex];
+
+                            input_filePathName_ = imagePath;
+
+                            LoadVideo(imagePath);
+                        }
+
+                        if (isVideoBOB_)
+                        {
+                            std::string imagePath = imageVideoPathsBOB_[currentImageIndex];
 
                             input_filePathName_ = imagePath;
 
