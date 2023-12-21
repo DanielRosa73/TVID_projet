@@ -297,6 +297,14 @@ namespace Application
             {
                 if (ImGui::Button("Convert Video to PPM"))
                 {
+                    if (imageVideoPathsPGM_.size() == 0)
+                    {
+                        std::cerr << "No PGM files found." << std::endl;
+                        std::cerr << "Please convert the video to PGM first (Load a video)." << std::endl;
+                        ImGui::End();
+                        return;
+                    }
+
                     imageVideoPathsPPM_.clear();
 
                     isVideoPGM_ = false;
@@ -338,7 +346,15 @@ namespace Application
                 }
 
                 if (ImGui::Button("BOB Deinterlacing"))
-                {   
+                {
+                    if (imageVideoPathsPPM_.size() == 0)
+                    {
+                        std::cerr << "No PPM files found." << std::endl;
+                        std::cerr << "Please convert the video to PPM first." << std::endl;
+                        ImGui::End();
+                        return;
+                    }
+
                     imageVideoPathsBOB_.clear();
 
                     int counter = 0;
