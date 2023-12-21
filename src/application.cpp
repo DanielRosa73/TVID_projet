@@ -97,6 +97,11 @@ namespace Application
 
             Update();
 
+            if (showExtensionWindow_) // Check if we need to show the startup window
+            {
+                ShowStartupWindow(); // Call the function that shows the startup window
+            }
+
             // Rendering
             ImGui::Render();
             int display_w, display_h;
@@ -230,6 +235,31 @@ namespace Application
         return fileCount;
     }
 
+    void Application::ShowStartupWindow()
+    {
+        // This function is now correctly placed inside the ImGui frame scope
+        ImGui::SetNextWindowSize(ImVec2(400, 200), ImGuiCond_FirstUseEver);
+        ImGui::SetNextWindowPos(ImVec2(50, 50), ImGuiCond_FirstUseEver);
+        ImGui::Begin("Welcome", &showExtensionWindow_, ImGuiWindowFlags_NoCollapse);
+
+        ImGui::Text("Welcome to the Video Loader App!");
+        ImGui::Text("Please select the video file extension you wish to load:");
+
+        if (ImGui::Combo("Video File Extension", &currentExtension_, videoExtensions_, IM_ARRAYSIZE(videoExtensions_)))
+        {
+            std::string selectedExtension = videoExtensions_[currentExtension_];
+
+            std::cout << "Selected extension: " << selectedExtension << std::endl;
+        }
+
+        if (ImGui::Button("OK"))
+        {
+            showExtensionWindow_ = false;
+        }
+
+        ImGui::End();
+    }
+
     void Application::Update()
     {
         if (ImGui::BeginMainMenuBar())
@@ -238,7 +268,12 @@ namespace Application
             {
                 if (ImGui::MenuItem("Open Video"))
                 {
-                    ImGuiFileDialog::Instance()->OpenDialog("ChooseVideoDlgKey", "Choose Video", ".m2v", ".");
+                    ImGuiFileDialog::Instance()->OpenDialog("ChooseVideoDlgKey", "Choose Video", videoExtensions_[currentExtension_], ".");
+                }
+
+                if (ImGui::MenuItem("Change Video Extension"))
+                {
+                    showExtensionWindow_ = true;
                 }
 
                 if (ImGui::MenuItem("Exit"))

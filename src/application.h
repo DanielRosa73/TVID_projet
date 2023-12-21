@@ -49,6 +49,8 @@ namespace Application
 
             void exec(const char* cmd);
 
+            void ShowStartupWindow();
+
             void Update();
 
             void LoadImage(const std::string& filename);
@@ -77,5 +79,9 @@ namespace Application
             bool isVideoBOB_ = false;
 
             bool autoPlay_ = false;
+
+            bool showExtensionWindow_ = true;
+            const char* videoExtensions_[2] = {".m2v", ".ts" };
+            int currentExtension_ = 0;
     };
 }
