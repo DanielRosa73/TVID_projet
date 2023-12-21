@@ -391,6 +391,8 @@ void dump_state (FILE * f, mpeg2_state_t state, const mpeg2_info_t * info,
 	    fprintf (f, " composite %05x", pic->flags >> 12);
 	fprintf (f, " offset");
 	nb_pos = pic->nb_fields;
+	fprintf(f, " Frame Period: %.f\n", 27000000. / seq->frame_period);
+	
 	if (seq->flags & SEQ_FLAG_PROGRESSIVE_SEQUENCE)
 	    nb_pos >>= 1;
 	for (i = 0; i < nb_pos; i++)
