@@ -37,16 +37,17 @@ inline void ConvertPGMtoPPM(const std::string &inputFilename, const std::string 
     input >> maxval;
     input.get();
 
-    output << "P6\n" << width << " " << height << "\n" << maxval << "\n";
-
     std::vector<unsigned char> image(width * height);
-    std::vector<unsigned char> colorImage(width * height * 3);
 
     input.read(reinterpret_cast<char*>(image.data()), image.size());
 
     int yHeight = (2 * height) / 3;
     int uvHeight = height / 3;
     int uvWidth = width / 2;
+
+    output << "P6\n" << width << " " << yHeight << "\n" << maxval << "\n";
+
+    std::vector<unsigned char> colorImage(width * yHeight * 3);
 
     // Initialize the color image with the Y U V components
     std::vector<unsigned char> yComponent(image.begin(), image.begin() + yHeight * width);
@@ -72,32 +73,22 @@ inline void ConvertPGMtoPPM(const std::string &inputFilename, const std::string 
     }
 
     // Convert the Y U V components to RGB
-    std::vector<unsigned char> fullY(height * width);
-    std::vector<unsigned char> fullU(height * width);
-    std::vector<unsigned char> fullV(height * width);
+    std::vector<unsigned char> fullU(yHeight * width);
+    std::vector<unsigned char> fullV(yHeight * width);
 
-    for (int y = 0; y < height; y++)
-    {
-        int correspondingY = (2 * y / 3);
-        for (int x = 0; x < width; x++)
-        {
-            fullY[y * width + x] = yComponent[correspondingY * width + x];
-        }
-    }
-
-    for (int y = 0; y < height; ++y)
+    for (int y = 0; y < yHeight; ++y)
     {
         for (int x = 0; x < width; ++x)
         {
-            int uvIndex = (y / 3) * uvWidth + (x / 2);
+            int uvIndex = (y / 2) * uvWidth + (x / 2);
             fullU[y * width + x] = uComponent[uvIndex];
             fullV[y * width + x] = vComponent[uvIndex];
         }
     }
 
-    for (int i = 0; i < height * width; i++)
+    for (int i = 0; i < yHeight * width; i++)
     {
-        int y = fullY[i];
+        int y = yComponent[i];
         int u = fullU[i] - 128;
         int v = fullV[i] - 128;
 
