@@ -398,10 +398,13 @@ namespace Application
                     isVideoPPM_ = false;
                     isVideoBOB_ = true;
 
+                    std::string folder_to_create = "../../test_images/bob/bw_numbers/" + findFolderName(imageVideoPathsPPM_[0]) + "/";
+                    std::string command = "mkdir -p " + folder_to_create;
+                    exec(command.c_str());
+
                     if (countFilesInFolder("../../test_images/bob/" + findFolderName(imageVideoPathsPPM_[0]) + "/") == imageVideoPathsPPM_.size() * 2)
                     {
                         std::cout << "PPM files for bob already exist." << std::endl;
-
                         for (const std::string& ppmFilePath : imageVideoPathsPPM_)
                         {
                             std::string bobFilePath_1 = "../../test_images/bob/bw_numbers/" + std::to_string(counter) + ".ppm";
