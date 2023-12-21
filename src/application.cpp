@@ -300,7 +300,6 @@ namespace Application
                     isVideoBOB_ = false;
 
                     std::string command = "mkdir -p ../../test_images/ppm/" + findFolderName(imageVideoPathsPGM_[0]) + "/";
-                    std::cout << "Command: " << command << std::endl;
                     exec(command.c_str());
 
                     if (countFilesInFolder("../../test_images/ppm/" + findFolderName(imageVideoPathsPGM_[0]) + "/") == imageVideoPathsPGM_.size())
@@ -421,7 +420,7 @@ namespace Application
                     std::getline(fps_file, fps_string);
                     fps_file.close();
 
-                    std::cout << "FPS: " << fps_string << std::endl;
+                    std::cout << "FPS string: " << fps_string << std::endl;
 
                     if (fps_string.empty() || fps_file.fail())
                     {
@@ -432,6 +431,8 @@ namespace Application
                     {
                         fps_ = std::stof(fps_string);
                     }
+
+                    std::cout << "FPS: " << fps_ << std::endl;
 
                     ms_ = 1000.0f / fps_;
 
