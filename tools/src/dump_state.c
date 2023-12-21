@@ -395,6 +395,10 @@ void dump_state (FILE * f, mpeg2_state_t state, const mpeg2_info_t * info,
 
 	FILE *fp;
 	fp = fopen("frame_period.txt", "a");
+	if (fp == NULL) {
+	    printf("Error opening file!\n");
+	    return;
+	}
 	fprintf(fp, "%.3f\n", 27000000. / seq->frame_period);
 	fclose(fp);
 

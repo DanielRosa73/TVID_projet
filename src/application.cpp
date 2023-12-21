@@ -472,7 +472,7 @@ namespace Application
                     std::string command = "../../tools/src/mpeg2dec -o pgm " + filePathName;
                     exec(command.c_str());
 
-                    std::string fps_path = "../../tools/frame_period.txt";
+                    std::string fps_path = "frame_period.txt";
                     std::ifstream fps_file(fps_path);
                     std::string fps_string;
                     std::getline(fps_file, fps_string);
