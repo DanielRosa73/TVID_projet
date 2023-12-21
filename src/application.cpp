@@ -407,8 +407,8 @@ namespace Application
                         std::cout << "PPM files for bob already exist." << std::endl;
                         for (const std::string& ppmFilePath : imageVideoPathsPPM_)
                         {
-                            std::string bobFilePath_1 = "../../test_images/bob/bw_numbers/" + std::to_string(counter) + ".ppm";
-                            std::string bobFilePath_2 = "../../test_images/bob/bw_numbers/" + std::to_string(counter + 1) + ".ppm";
+                            std::string bobFilePath_1 = "../../test_images/bob/" + folder_to_create + "/" + std::to_string(counter) + ".ppm";
+                            std::string bobFilePath_2 = "../../test_images/bob/" + folder_to_create + "/" + std::to_string(counter + 1) + ".ppm";
                             counter += 2;
                             imageVideoPathsBOB_.push_back(bobFilePath_1);
                             imageVideoPathsBOB_.push_back(bobFilePath_2);
