@@ -32,7 +32,7 @@ namespace Application
 #endif
 
         // Create window with graphics context
-        window_ = glfwCreateWindow(1920, 740, "TVID Project", nullptr, nullptr);
+        window_ = glfwCreateWindow(1130, 740, "TVID Project", nullptr, nullptr);
         if (window_ == nullptr)
             fprintf(stderr, "Failed to create GLFW window\n");
         glfwMakeContextCurrent(window_);
@@ -236,11 +236,6 @@ namespace Application
         {
             if (ImGui::BeginMenu("Menu"))
             {
-                if (ImGui::MenuItem("Open Image"))
-                {
-                    ImGuiFileDialog::Instance()->OpenDialog("ChooseFileDlgKey", "Choose File", ".pgm", ".");
-                }
-
                 if (ImGui::MenuItem("Open Video"))
                 {
                     ImGuiFileDialog::Instance()->OpenDialog("ChooseVideoDlgKey", "Choose Video", ".m2v", ".");
@@ -262,22 +257,6 @@ namespace Application
             ImGui::EndMainMenuBar();
         }
 
-        if (ImGuiFileDialog::Instance()->Display("ChooseFileDlgKey"))
-        {
-            if (ImGuiFileDialog::Instance()->IsOk())
-            {
-                std::string filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
-                std::string filePath = ImGuiFileDialog::Instance()->GetCurrentPath();
-
-                input_filePathName_ = filePathName;
-
-                // Load the image
-                LoadImage(input_filePathName_);
-            }
-
-            ImGuiFileDialog::Instance()->Close();
-        }
-
         if (ImGuiFileDialog::Instance()->Display("SaveFileDlgKey"))
         {
             if (ImGuiFileDialog::Instance()->IsOk())
@@ -294,28 +273,7 @@ namespace Application
             ImGuiFileDialog::Instance()->Close();
         }
 
-        if (textureImageID_ != 0)
-        {
-            ImGui::SetNextWindowPos(ImVec2(0, 20));
-            ImGui::SetNextWindowSize(ImVec2(720, 720));
-            if (ImGui::Begin("Image", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove))
-            {
-                ImGui::Image(reinterpret_cast<void*>(static_cast<intptr_t>(textureImageID_)), ImGui::GetContentRegionAvail());
-                ImGui::End();
-            }
-        }
-        else
-        {
-            ImGui::SetNextWindowPos(ImVec2(0, 20));
-            ImGui::SetNextWindowSize(ImVec2(720, 720));
-            if (ImGui::Begin("Image", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove))
-            {
-                ImGui::Text("No image loaded");
-                ImGui::End();
-            }
-        }
-
-        if (textureImageID_ != 0)
+        if (textureID_ != 0)
         {
             ImGui::SetNextWindowPos(ImVec2(720, 20));
             ImGui::SetNextWindowSize(ImVec2(200, 720));
@@ -348,29 +306,12 @@ namespace Application
             }
         }
 
-        if (textureImageID_ != 0)
+        if (textureID_ != 0)
         {
             ImGui::SetNextWindowPos(ImVec2(920, 20));
             ImGui::SetNextWindowSize(ImVec2(210, 720));
             if (ImGui::Begin("Settings", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove))
             {
-                if (ImGui::Button("Convert Image to PPM"))
-                {
-                    std::string command = "mkdir -p ../../test_images/ppm/" + findFolderName(input_filePathName_) + "/";
-                    std::cout << "Command: " << command << std::endl;
-                    exec(command.c_str());
-
-                    std::string outputPath = changeExtension(input_filePathName_, ".ppm");
-
-                    std::cout << "Output path: " << outputPath << std::endl;
-
-                    ConvertPGMtoPPM(input_filePathName_, outputPath);
-
-                    input_filePathName_ = const_cast<char*>(outputPath.c_str());
-
-                    LoadImage(input_filePathName_);
-                }
-
                 if (ImGui::Button("Convert Video to PPM"))
                 {
                     imageVideoPathsPPM_.clear();
@@ -539,7 +480,7 @@ namespace Application
             ImGuiFileDialog::Instance()->Close();
         }
 
-        ImGui::SetNextWindowPos(ImVec2(1130, 20));
+        ImGui::SetNextWindowPos(ImVec2(0, 20));
         ImGui::SetNextWindowSize(ImVec2(720, 720));
         if (ImGui::Begin("Video", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove))
         {
@@ -569,7 +510,7 @@ namespace Application
 
                             input_filePathName_ = imagePath;
 
-                            LoadVideo(imagePath);
+                            LoadImage(imagePath);
                         }
 
                         if (isVideoPPM_)
@@ -578,7 +519,7 @@ namespace Application
 
                             input_filePathName_ = imagePath;
 
-                            LoadVideo(imagePath);
+                            LoadImage(imagePath);
                         }
 
                         if (isVideoBOB_)
@@ -587,7 +528,7 @@ namespace Application
 
                             input_filePathName_ = imagePath;
 
-                            LoadVideo(imagePath);
+                            LoadImage(imagePath);
                         }
                     }
                 }
@@ -604,7 +545,7 @@ namespace Application
 
                             input_filePathName_ = imagePath;
 
-                            LoadVideo(imagePath);
+                            LoadImage(imagePath);
                         }
 
                         if (isVideoPPM_)
@@ -613,7 +554,7 @@ namespace Application
 
                             input_filePathName_ = imagePath;
 
-                            LoadVideo(imagePath);
+                            LoadImage(imagePath);
                         }
 
                         if (isVideoBOB_)
@@ -622,14 +563,14 @@ namespace Application
 
                             input_filePathName_ = imagePath;
 
-                            LoadVideo(imagePath);
+                            LoadImage(imagePath);
                         }
                     }
                 }
 
-                if (textureVideoID_ != 0)
+                if (textureID_ != 0)
                 {
-                    ImGui::Image(reinterpret_cast<void*>(static_cast<intptr_t>(textureVideoID_)), ImGui::GetContentRegionAvail());
+                    ImGui::Image(reinterpret_cast<void*>(static_cast<intptr_t>(textureID_)), ImGui::GetContentRegionAvail());
                 }
                 else
                 {
@@ -686,70 +627,7 @@ namespace Application
             std::cerr << "OpenGL error: " << err << std::endl;
         }
 
-        textureImageID_ = textureID;
-        imageInfo_.width = imageWidth;
-        imageInfo_.height = imageHeight;
-        imageInfo_.depth = imageChannels;
-
-        if (imageChannels == 1)
-        {
-            imageInfo_.samplingMode = "Grayscale";
-        }
-        else if (imageChannels == 3)
-        {
-            imageInfo_.samplingMode = "RGB";
-        }
-        else if (imageChannels == 4)
-        {
-            imageInfo_.samplingMode = "RGBA";
-        }
-
-        stbi_image_free(imageData);
-    }
-
-
-    void Application::LoadVideo(const std::string& filename)
-    {
-        int imageWidth, imageHeight, imageChannels;
-        unsigned char* imageData = stbi_load(filename.c_str(), &imageWidth, &imageHeight, &imageChannels, 0);
-
-        if (imageData == nullptr)
-        {
-            fprintf(stderr, "Failed to load image: %s\n", stbi_failure_reason());
-            return;
-        }
-
-        GLuint textureID;
-        glGenTextures(1, &textureID);
-        glBindTexture(GL_TEXTURE_2D, textureID);
-
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-        if (imageChannels == 1)
-        {
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_R8, imageWidth, imageHeight, 0, GL_RED, GL_UNSIGNED_BYTE, imageData);
-            GLint swizzleMask[] = {GL_RED, GL_RED, GL_RED, GL_ONE};
-            glTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_RGBA, swizzleMask);
-        }
-        else if (imageChannels == 3)
-        {
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, imageWidth, imageHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, imageData);
-        }
-        else if (imageChannels == 4)
-        {
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, imageWidth, imageHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, imageData);
-        }
-
-        GLenum err;
-        while ((err = glGetError()) != GL_NO_ERROR)
-        {
-            std::cerr << "OpenGL error: " << err << std::endl;
-        }
-
-        textureVideoID_ = textureID;
+        textureID_ = textureID;
         imageInfo_.width = imageWidth;
         imageInfo_.height = imageHeight;
         imageInfo_.depth = imageChannels;

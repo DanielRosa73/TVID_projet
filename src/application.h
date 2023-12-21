@@ -52,7 +52,6 @@ namespace Application
             void Update();
 
             void LoadImage(const std::string& filename);
-            void LoadVideo(const std::string& filename);
 
             void SaveImageAsPPM(const std::string& inputPath, const std::string& outputPath);
 
@@ -64,8 +63,7 @@ namespace Application
 
             ImageInfo imageInfo_ = { 0, 0, 0, "" };
 
-            GLuint textureImageID_;
-            GLuint textureVideoID_;
+            GLuint textureID_;
 
             std::string input_filePathName_;
             char* output_filePathName_;
