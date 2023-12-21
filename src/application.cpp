@@ -301,7 +301,7 @@ namespace Application
 
                 ImGui::Separator();
 
-                ImGui::Text("Fps and ms Info of Video");
+                ImGui::Text("Fps and Ms Info of Video");
                 ImGui::Text("ms: %f", ms_);
                 ImGui::SliderFloat("ms", &ms_, 0.1f, 1000.0f);
                 ImGui::Text("fps: %f", 1000.0f / ms_);
@@ -398,7 +398,7 @@ namespace Application
                     isVideoPPM_ = false;
                     isVideoBOB_ = true;
 
-                    std::string folder_to_create = "../../test_images/bob/bw_numbers/" + findFolderName(imageVideoPathsPPM_[0]) + "/";
+                    std::string folder_to_create = "../../test_images/bob/" + findFolderName(imageVideoPathsPPM_[0]) + "/";
                     std::string command = "mkdir -p " + folder_to_create;
                     exec(command.c_str());
 
