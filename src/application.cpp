@@ -473,7 +473,8 @@ namespace Application
                 // Load the video
                 try
                 {
-                    exec("rm -rf frame_period.txt");
+                    exec("rm -rf flags.txt");
+                    exec("rm -rf prog_seq.txt");
 
                     if (currentExtension_ == 1)
                     {
@@ -503,7 +504,7 @@ namespace Application
 
                     std::cout << "Found " << imageVideoPathsPGM_.size() << " PGM files." << std::endl;
 
-                    std::string path = "frame_period.txt";
+                    std::string path = "flags.txt";
                     std::ifstream file(path);
 
                     progressiveFrame_.clear();
@@ -545,6 +546,31 @@ namespace Application
                     }
 
                     file.close();
+
+                    path = "prog_seq.txt";
+
+                    std::ifstream file2(path);
+
+                    pseqFrame_.clear();
+
+                    pseqFrame_.resize(imageVideoPathsPGM_.size());
+
+                    std::string pseqFrame_string;
+
+                    for (int i = 0; i < imageVideoPathsPGM_.size(); i++)
+                    {
+                        std::getline(file2, pseqFrame_string);
+
+                        if (pseqFrame_string.empty() || file2.fail())
+                        {
+                            std::cerr << "Could not read PSEQ from file: " << path << std::endl;
+                            pseqFrame_[i] = false;
+                        }
+                        else
+                        {
+                            pseqFrame_[i] = pseqFrame_string[0] == '1';
+                        }
+                    }
                 }
                 catch(const std::exception& e)
                 {

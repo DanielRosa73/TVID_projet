@@ -394,16 +394,22 @@ void dump_state (FILE * f, mpeg2_state_t state, const mpeg2_info_t * info,
 	fprintf(f, " Frame Period: %.3f\n", 27000000. / seq->frame_period);
 
 	FILE *fp;
-	fp = fopen("frame_period.txt", "a");
+	fp = fopen("flags.txt", "a");
 	if (fp == NULL) {
 	    printf("Error opening file!\n");
 	    return;
 	}
+	
 	fprintf(fp, "%.3f\n", 27000000. / seq->frame_period);
 	fprintf(fp, "%d\n", pic->flags & PIC_FLAG_PROGRESSIVE_FRAME ? 1 : 0);
 	fprintf(fp, "%d\n", pic->flags & PIC_FLAG_TOP_FIELD_FIRST ? 1 : 0);
 	fprintf(fp, "%d\n", pic->flags & PIC_FLAG_REPEAT_FIRST_FIELD ? 1 : 0);
 	fclose(fp);
+
+	FILE *fp2;
+	fp2 = fopen("prog_seq.txt", "a");
+	fprintf(fp2, "%d\n", seq->flags & SEQ_FLAG_PROGRESSIVE_SEQUENCE ? 1 : 0);
+	fclose(fp2);
 
 	if (seq->flags & SEQ_FLAG_PROGRESSIVE_SEQUENCE)
 	    nb_pos >>= 1;

@@ -87,5 +87,6 @@ namespace Application
             std::vector<bool> progressiveFrame_;
             std::vector<bool> tffFrame_;
             std::vector<bool> rffFrame_;
+            std::vector<bool> pseqFrame_;
     };
 }
