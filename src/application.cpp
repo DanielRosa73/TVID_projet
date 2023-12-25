@@ -235,6 +235,8 @@ namespace Application
         return fileCount;
     }
 
+    static char pid_[128] = "";
+
     void Application::ShowStartupWindow()
     {
         // This function is now correctly placed inside the ImGui frame scope
@@ -305,6 +307,10 @@ namespace Application
                 ImGui::Text("ms: %f", ms_);
                 ImGui::SliderFloat("ms", &ms_, 0.1f, 1000.0f);
                 ImGui::Text("fps: %f", 1000.0f / ms_);
+
+                ImGui::Separator();
+
+                ImGui::InputText("Enter Pid", pid_, IM_ARRAYSIZE(pid_));
 
                 ImGui::Separator();
 
@@ -407,7 +413,7 @@ namespace Application
                     {
                         try
                         {
-                            // handle progressive frame
+                            // Handle progressive frame
                             if (progressiveFrame_[i])
                             {
                                 imageVideoPathsBOB_.push_back(ppmFilePath);
@@ -469,11 +475,22 @@ namespace Application
                 {
                     exec("rm -rf frame_period.txt");
 
-                    std::string command = "../../tools/src/mpeg2dec -v -o pgm " + filePathName;
-                    exec(command.c_str());
+                    if (currentExtension_ == 1)
+                    {
+                        std::cout << "PID: " << pid_ << std::endl;
+                        std::string str_pid = std::string(pid_);
+                        std::string command = "../../tools/src/mpeg2dec -v -t " + str_pid + " -o pgm " + filePathName;
+                        std::cout << command << std::endl;
+                        exec(command.c_str());
+                    }
+                    else
+                    {
+                        std::string command = "../../tools/src/mpeg2dec -v -o pgm " + filePathName;
+                        exec(command.c_str());
+                    }
 
                     std::string video_name = extractFileNameWithoutExtension(filePathName);
-                    command = "mkdir -p ../../test_images/pgm/" + video_name + "/";
+                    std::string command = "mkdir -p ../../test_images/pgm/" + video_name + "/";
                     exec(command.c_str());
 
                     command = "mv *.pgm ../../test_images/pgm/" + video_name + "/";
@@ -515,8 +532,6 @@ namespace Application
                         {
                             fps_ = std::stof(fps_string);
                         }
-
-                        std::cout << "FPS: " << fps_ << std::endl;
 
                         ms_ = 1000.0f / fps_;
 
