@@ -400,6 +400,9 @@ void dump_state (FILE * f, mpeg2_state_t state, const mpeg2_info_t * info,
 	    return;
 	}
 	fprintf(fp, "%.3f\n", 27000000. / seq->frame_period);
+	fprintf(fp, "%d\n", pic->flags & PIC_FLAG_PROGRESSIVE_FRAME ? 1 : 0);
+	fprintf(fp, "%d\n", pic->flags & PIC_FLAG_TOP_FIELD_FIRST ? 1 : 0);
+	fprintf(fp, "%d\n", pic->flags & PIC_FLAG_REPEAT_FIRST_FIELD ? 1 : 0);
 	fclose(fp);
 
 	if (seq->flags & SEQ_FLAG_PROGRESSIVE_SEQUENCE)

@@ -83,5 +83,9 @@ namespace Application
             bool showExtensionWindow_ = true;
             const char* videoExtensions_[2] = {".m2v", ".ts" };
             int currentExtension_ = 0;
+
+            std::vector<bool> progressiveFrame_;
+            std::vector<bool> tffFrame_;
+            std::vector<bool> rffFrame_;
     };
 }

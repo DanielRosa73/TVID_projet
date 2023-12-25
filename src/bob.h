@@ -11,7 +11,7 @@ struct BobOutput {
     std::string frame2;
 };
 
-inline BobOutput bob_deinterlacing(const std::string& inputFilename, const BobOutput& output)
+inline BobOutput bob_deinterlacing(const std::string& inputFilename, const BobOutput& output, bool tff, bool rff)
 {
     std::ifstream input(inputFilename, std::ios::binary);
     if (!input.is_open()) {
@@ -75,8 +75,16 @@ inline BobOutput bob_deinterlacing(const std::string& inputFilename, const BobOu
         }
     }
 
+    if (!tff)
+    {
+        frame1.swap(frame2);
+    }
+
     output_frame1.write(reinterpret_cast<char*>(frame1.data()), frame1.size());
-    output_frame2.write(reinterpret_cast<char*>(frame2.data()), frame2.size());
+    if (rff)
+        output_frame2.write(reinterpret_cast<char*>(frame1.data()), frame1.size());
+    else
+        output_frame2.write(reinterpret_cast<char*>(frame2.data()), frame2.size());
 
     output_frame2.close();
     output_frame1.close();

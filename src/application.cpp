@@ -402,45 +402,43 @@ namespace Application
                     std::string command = "mkdir -p " + folder_to_create;
                     exec(command.c_str());
 
-                    if (countFilesInFolder("../../test_images/bob/" + findFolderName(imageVideoPathsPPM_[0]) + "/") == imageVideoPathsPPM_.size() * 2)
+                    int i = 0;
+                    for (const std::string& ppmFilePath : imageVideoPathsPPM_)
                     {
-                        std::cout << "PPM files for bob already exist." << std::endl;
-                        for (const std::string& ppmFilePath : imageVideoPathsPPM_)
+                        try
                         {
-                            std::string bobFilePath_1 = "../../test_images/bob/" + folder_to_create + "/" + std::to_string(counter) + ".ppm";
-                            std::string bobFilePath_2 = "../../test_images/bob/" + folder_to_create + "/" + std::to_string(counter + 1) + ".ppm";
-                            counter += 2;
-                            imageVideoPathsBOB_.push_back(bobFilePath_1);
-                            imageVideoPathsBOB_.push_back(bobFilePath_2);
-                        }
-                    }
-                    else
-                    {
-                        for (const std::string& ppmFilePath : imageVideoPathsPPM_)
-                        {
-                            try
+                            // handle progressive frame
+                            if (progressiveFrame_[i])
                             {
-                                std::string bobFilePath_1 = "../../test_images/bob/bw_numbers/" + std::to_string(counter) + ".ppm";
-                                std::string bobFilePath_2 = "../../test_images/bob/bw_numbers/" + std::to_string(counter + 1) + ".ppm";
+                                imageVideoPathsBOB_.push_back(ppmFilePath);
+                            }
+                            else
+                            {
+                                std::string bobFilePath_1 = "../../test_images/bob/" + folder_to_create + std::to_string(counter) + ".ppm";
+                                std::string bobFilePath_2 = "../../test_images/bob/" + folder_to_create + std::to_string(counter + 1) + ".ppm";
+
                                 counter += 2;
                                 BobOutput bobOutput = { bobFilePath_1, bobFilePath_2 };
-                                bob_deinterlacing(ppmFilePath, bobOutput);
+                                
+                                bob_deinterlacing(ppmFilePath, bobOutput, tffFrame_[i], rffFrame_[i]);
                                 std::cout << "Converted to BOB: " << bobFilePath_1 << " and " << bobFilePath_2 << std::endl;
                                 imageVideoPathsBOB_.push_back(bobFilePath_1);
                                 imageVideoPathsBOB_.push_back(bobFilePath_2);
                             }
-                            catch (const std::exception& e)
-                            {
-                                std::cerr << "Error converting to BOB: " << e.what() << '\n';
-                            }
+
+                            i++;
+                        }
+                        catch (const std::exception& e)
+                        {
+                            std::cerr << "Error converting to BOB: " << e.what() << '\n';
                         }
                     }
 
                     std::cout << "Conversion to BOB completed." << std::endl;
                 }
-
-                ImGui::End();
             }
+
+            ImGui::End();
         }
         else
         {
@@ -469,30 +467,10 @@ namespace Application
                 // Load the video
                 try
                 {
-                    std::string command = "../../tools/src/mpeg2dec -o pgm " + filePathName;
+                    exec("rm -rf frame_period.txt");
+
+                    std::string command = "../../tools/src/mpeg2dec -v -o pgm " + filePathName;
                     exec(command.c_str());
-
-                    std::string fps_path = "frame_period.txt";
-                    std::ifstream fps_file(fps_path);
-                    std::string fps_string;
-                    std::getline(fps_file, fps_string);
-                    fps_file.close();
-
-                    std::cout << "FPS string: " << fps_string << std::endl;
-
-                    if (fps_string.empty() || fps_file.fail())
-                    {
-                        std::cerr << "Could not read FPS from file: " << fps_path << std::endl;
-                        fps_ = 25.0f;
-                    }
-                    else
-                    {
-                        fps_ = std::stof(fps_string);
-                    }
-
-                    std::cout << "FPS: " << fps_ << std::endl;
-
-                    ms_ = 1000.0f / fps_;
 
                     std::string video_name = extractFileNameWithoutExtension(filePathName);
                     command = "mkdir -p ../../test_images/pgm/" + video_name + "/";
@@ -507,12 +485,56 @@ namespace Application
                     imageVideoPathsPGM_ = orderFilesByNumber(findFilesWithExtension("../../test_images/pgm/" + video_name + "/", ".pgm"));
 
                     std::cout << "Found " << imageVideoPathsPGM_.size() << " PGM files." << std::endl;
+
+                    std::string path = "frame_period.txt";
+                    std::ifstream file(path);
+
+                    progressiveFrame_.clear();
+                    tffFrame_.clear();
+                    rffFrame_.clear();
+
+                    progressiveFrame_.resize(imageVideoPathsPGM_.size());
+                    tffFrame_.resize(imageVideoPathsPGM_.size());
+                    rffFrame_.resize(imageVideoPathsPGM_.size());
+                    
+                    std::string fps_string;
+                    std::string progressiveFrame_string;
+                    std::string tffFrame_string;
+                    std::string rffFrame_string;
+
+                    for (int i = 0; i < imageVideoPathsPGM_.size(); i++)
+                    {
+                        std::getline(file, fps_string);
+
+                        if (fps_string.empty() || file.fail())
+                        {
+                            std::cerr << "Could not read FPS from file: " << path << std::endl;
+                            fps_ = 25.0f;
+                        }
+                        else
+                        {
+                            fps_ = std::stof(fps_string);
+                        }
+
+                        std::cout << "FPS: " << fps_ << std::endl;
+
+                        ms_ = 1000.0f / fps_;
+
+                        std::getline(file, progressiveFrame_string);
+                        std::getline(file, tffFrame_string);
+                        std::getline(file, rffFrame_string);
+
+                        progressiveFrame_[i] = progressiveFrame_string[0] == '1';
+                        tffFrame_[i] = tffFrame_string[0] == '1';
+                        rffFrame_[i] = rffFrame_string[0] == '1';
+                    }
+
+                    file.close();
                 }
                 catch(const std::exception& e)
                 {
                     std::cerr << e.what() << '\n';
                 }
-                
             }
 
             ImGuiFileDialog::Instance()->Close();
