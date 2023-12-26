@@ -351,6 +351,7 @@ namespace Application
                     isVideoPGM_ = false;
                     isVideoPPM_ = true;
                     isVideoBOB_ = false;
+                    isVideoALT_ = false;
 
                     std::string command = "mkdir -p ../../test_images/ppm/" + findFolderName(imageVideoPathsPGM_[0]) + "/";
                     exec(command.c_str());
@@ -403,6 +404,7 @@ namespace Application
                     isVideoPGM_ = false;
                     isVideoPPM_ = false;
                     isVideoBOB_ = true;
+                    isVideoALT_ = false;
 
                     std::string folder_to_create = "../../test_images/bob/" + findFolderName(imageVideoPathsPPM_[0]) + "/";
                     std::string command = "mkdir -p " + folder_to_create;
@@ -442,6 +444,43 @@ namespace Application
 
                     std::cout << "Conversion to BOB completed." << std::endl;
                 }
+
+                if (ImGui::Button("Alternative Deinterlacing"))
+                {
+                    if (imageVideoPathsPPM_.size() == 0)
+                    {
+                        std::cerr << "No PPM files found." << std::endl;
+                        std::cerr << "Please convert the video to PPM first." << std::endl;
+                        ImGui::End();
+                        return;
+                    }
+                    imageVideoPathALT_.clear();
+
+                    int counter = 0;
+
+                    isVideoPGM_ = false;
+                    isVideoPPM_ = false;
+                    isVideoBOB_ = false;
+                    isVideoALT_ = true;
+
+                    std::string folder_to_create = "../../test_images/alt/" + findFolderName(imageVideoPathsPPM_[0]) + "/";
+                    std::string command = "mkdir -p " + folder_to_create;
+                    exec(command.c_str());
+
+                    int i = 0;
+                    for (const std::string& ppmFilePath : imageVideoPathsPPM_)
+                    {
+                        try
+                        {
+                            // Handle progressive frame
+                            if (progressiveFrame_[i])
+                            {
+                                imageVideoPathsBOB_.push_back(ppmFilePath);
+                            }
+                        }
+                    }
+
+                }
             }
 
             ImGui::End();
@@ -469,6 +508,7 @@ namespace Application
                 isVideoPGM_ = true;
                 isVideoPPM_ = false;
                 isVideoBOB_ = false;
+                isVideoALT_ = false;
 
                 // Load the video
                 try
