@@ -475,8 +475,27 @@ namespace Application
                             // Handle progressive frame
                             if (progressiveFrame_[i])
                             {
-                                imageVideoPathsBOB_.push_back(ppmFilePath);
+                                imageVideoPathALT_.push_back(ppmFilePath);
                             }
+                            else
+                            {
+                                std::string altFilePath_1 = "../../test_images/alt/" + folder_to_create + std::to_string(counter) + ".ppm";
+                                std::string altFilePath_2 = "../../test_images/alt/" + folder_to_create + std::to_string(counter + 1) + ".ppm";
+
+                                counter += 2;
+                                AltOutput AltOutput = {altFilePath_1, altFilePath_2};
+                                
+                                alt_deinterlacing(ppmFilePath, AltOutput, tffFrame_[i], rffFrame_[i]);
+                                std::cout << "Converted to Improved Bob: " << altFilePath_1 << " and " << altFilePath_2<< std::endl;
+                                imageVideoPathALT_.push_back(altFilePath_1);
+                                imageVideoPathALT_.push_back(altFilePath_2);
+                            }
+
+                            i++;
+                        }
+                        catch (const std::exception& e)
+                        {
+                            std::cerr << "Error converting to BOB: " << e.what() << '\n';
                         }
                     }
 
@@ -662,6 +681,12 @@ namespace Application
 
                             LoadImage(imagePath);
                         }
+                        if (isVideoALT_)
+                        {
+                            std::string imagePath = imageVideoPathALT_[currentImageIndex];
+
+                            LoadImage(imagePath);
+                        }
                     }
                 }
                 else
@@ -688,6 +713,13 @@ namespace Application
                         if (isVideoBOB_)
                         {
                             std::string imagePath = imageVideoPathsBOB_[currentImageIndex];
+
+                            LoadImage(imagePath);
+                        }
+
+                        if (isVideoALT_)
+                        {
+                            std::string imagePath = imageVideoPathALT_[currentImageIndex];
 
                             LoadImage(imagePath);
                         }

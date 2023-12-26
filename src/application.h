@@ -27,6 +27,7 @@
 #include "get_info.h"
 #include "imageConverter.h"
 #include "bob.h"
+#include "adaptative_deinterlacing.h"
 
 static void glfw_error_callback(int error, const char* description)
 {
