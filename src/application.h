@@ -91,5 +91,9 @@ namespace Application
             std::vector<bool> tffFrame_;
             std::vector<bool> rffFrame_;
             std::vector<bool> pseqFrame_;
+
+            int zone_size_ = 50;
+            int mean_error_ = 1000;
+            int movement_threshold_ = 50000;
     };
 }

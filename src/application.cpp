@@ -316,6 +316,12 @@ namespace Application
 
                 ImGui::Checkbox("Auto Play", &autoPlay_);
 
+                ImGui::Separator();
+
+                ImGui::InputInt("Zone", &zone_size_);
+                ImGui::InputInt("M Err", &mean_error_);
+                ImGui::Text("Movement Threshold: %d", zone_size_ * mean_error_);
+
                 ImGui::End();
             }
         }
@@ -467,6 +473,8 @@ namespace Application
                     std::string command = "mkdir -p " + folder_to_create;
                     exec(command.c_str());
 
+                    movement_threshold_ = mean_error_ * zone_size_;
+
                     int i = 0;
                     for (const std::string& ppmFilePath : imageVideoPathsPPM_)
                     {
@@ -485,7 +493,7 @@ namespace Application
                                 counter += 2;
                                 AltOutput AltOutput = {altFilePath_1, altFilePath_2};
                                 
-                                alt_deinterlacing(ppmFilePath, AltOutput, tffFrame_[i], rffFrame_[i]);
+                                alt_deinterlacing(ppmFilePath, AltOutput, tffFrame_[i], rffFrame_[i], zone_size_, movement_threshold_);
                                 std::cout << "Converted to Improved Bob: " << altFilePath_1 << " and " << altFilePath_2<< std::endl;
                                 imageVideoPathALT_.push_back(altFilePath_1);
                                 imageVideoPathALT_.push_back(altFilePath_2);
