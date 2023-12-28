@@ -27,6 +27,7 @@
 #include "get_info.h"
 #include "imageConverter.h"
 #include "bob.h"
+#include "adaptative_deinterlacing.h"
 
 static void glfw_error_callback(int error, const char* description)
 {
@@ -70,6 +71,7 @@ namespace Application
             std::vector<std::string> imageVideoPathsPGM_;
             std::vector<std::string> imageVideoPathsPPM_;
             std::vector<std::string> imageVideoPathsBOB_;
+            std::vector<std::string> imageVideoPathsALT_;
 
             float ms_ = 0.0f;
             float fps_ = 0.0f;
@@ -77,6 +79,7 @@ namespace Application
             bool isVideoPGM_ = false;
             bool isVideoPPM_ = false;
             bool isVideoBOB_ = false;
+            bool isVideoALT_ = false;
 
             bool autoPlay_ = false;
 

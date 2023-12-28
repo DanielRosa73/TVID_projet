@@ -262,6 +262,10 @@ namespace Application
         ImGui::End();
     }
 
+    int zone_size_ = 50;
+    int mean_error_ = 1000;
+    int movement_threshold_ = 5000;
+
     void Application::Update()
     {
         if (ImGui::BeginMainMenuBar())
@@ -316,6 +320,12 @@ namespace Application
 
                 ImGui::Checkbox("Auto Play", &autoPlay_);
 
+                ImGui::Separator();
+
+                ImGui::InputInt("Zone", &zone_size_);
+                ImGui::InputInt("M Err", &mean_error_);
+                ImGui::Text("Movement Threshold: %d", zone_size_ * mean_error_);
+
                 ImGui::End();
             }
         }
@@ -351,6 +361,7 @@ namespace Application
                     isVideoPGM_ = false;
                     isVideoPPM_ = true;
                     isVideoBOB_ = false;
+                    isVideoALT_ = false;
 
                     std::string command = "mkdir -p ../../test_images/ppm/" + findFolderName(imageVideoPathsPGM_[0]) + "/";
                     exec(command.c_str());
@@ -403,6 +414,7 @@ namespace Application
                     isVideoPGM_ = false;
                     isVideoPPM_ = false;
                     isVideoBOB_ = true;
+                    isVideoALT_ = false;
 
                     std::string folder_to_create = "../../test_images/bob/" + findFolderName(imageVideoPathsPPM_[0]) + "/";
                     std::string command = "mkdir -p " + folder_to_create;
@@ -441,6 +453,63 @@ namespace Application
                     }
 
                     std::cout << "Conversion to BOB completed." << std::endl;
+                }
+
+                if (ImGui::Button("Alternative Deinterlacing"))
+                {
+                    if (imageVideoPathsPPM_.size() == 0)
+                    {
+                        std::cerr << "No PPM files found." << std::endl;
+                        std::cerr << "Please convert the video to PPM first." << std::endl;
+                        ImGui::End();
+                        return;
+                    }
+
+                    imageVideoPathsALT_.clear();
+
+                    int counter = 0;
+
+                    isVideoPGM_ = false;
+                    isVideoPPM_ = false;
+                    isVideoBOB_ = false;
+                    isVideoALT_ = true;
+
+                    std::string folder_to_create = "../../test_images/alt/" + findFolderName(imageVideoPathsPPM_[0]) + "/";
+                    std::string command = "mkdir -p " + folder_to_create;
+                    exec(command.c_str());
+
+                    int i = 0;
+                    for (const std::string& ppmFilePath : imageVideoPathsPPM_)
+                    {
+                        try
+                        {
+                            // Handle progressive frame
+                            if (progressiveFrame_[i])
+                            {
+                                imageVideoPathsALT_.push_back(ppmFilePath);
+                            }
+                            else
+                            {
+                                std::string altFilePath_1 = "../../test_images/alt/" + folder_to_create + std::to_string(counter) + ".ppm";
+                                std::string altFilePath_2 = "../../test_images/alt/" + folder_to_create + std::to_string(counter + 1) + ".ppm";
+
+                                counter += 2;
+                                AltOutput AltOutput = {altFilePath_1, altFilePath_2};
+
+                                alt_deinterlacing(ppmFilePath, AltOutput, tffFrame_[i], rffFrame_[i], zone_size_, zone_size_ * mean_error_);
+                                std::cout << "Converted to Improved Bob: " << altFilePath_1 << " and " << altFilePath_2 << std::endl;
+                                imageVideoPathsALT_.push_back(altFilePath_1);
+                                imageVideoPathsALT_.push_back(altFilePath_2);
+                            }
+
+                            i++;
+                        }
+                        catch (const std::exception& e)
+                        {
+                            std::cerr << "Error converting to BOB: " << e.what() << '\n';
+                        }
+                    }
+
                 }
             }
 
@@ -622,6 +691,13 @@ namespace Application
 
                             LoadImage(imagePath);
                         }
+
+                        if (isVideoALT_)
+                        {
+                            std::string imagePath = imageVideoPathsALT_[currentImageIndex];
+
+                            LoadImage(imagePath);
+                        }
                     }
                 }
                 else
@@ -648,6 +724,13 @@ namespace Application
                         if (isVideoBOB_)
                         {
                             std::string imagePath = imageVideoPathsBOB_[currentImageIndex];
+
+                            LoadImage(imagePath);
+                        }
+
+                        if (isVideoALT_)
+                        {
+                            std::string imagePath = imageVideoPathsALT_[currentImageIndex];
 
                             LoadImage(imagePath);
                         }
