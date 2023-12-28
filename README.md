@@ -19,7 +19,7 @@
 
 - Do not touch the arrows in the boxes(Crash) Need to be fixed
 - Interface might not be charged, just rerun the app
-- Be sure to put the folder videos in your pc
+- Be sure to put the folder videos on your pc
 
 ## Guide
 
