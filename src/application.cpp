@@ -475,7 +475,7 @@ namespace Application
                     std::cout << "Conversion to BOB completed." << std::endl;
                 }
 
-                if (ImGui::Button("Alternative Deinterlacing"))
+                if (ImGui::Button("Adaptative Deinterlacing"))
                 {
                     if (imageVideoPathsPPM_.size() == 0)
                     {
