@@ -363,10 +363,21 @@ namespace Application
                     isVideoBOB_ = false;
                     isVideoALT_ = false;
 
-                    std::string command = "mkdir -p ../../test_images/ppm/" + findFolderName(imageVideoPathsPGM_[0]) + "/";
+                    std::string folder_to_create = "";
+                    if (currentExtension_ == 1)
+                    {
+                        folder_to_create = "../../test_images/ppm/" + findFolderName(imageVideoPathsPGM_[0]) + "/" + pid_ + "/";
+                    }
+                    else
+                    {
+                        folder_to_create = "../../test_images/ppm/" + findFolderName(imageVideoPathsPGM_[0]) + "/";
+                    }
+
+                    std::string command = "mkdir -p " + folder_to_create;
+
                     exec(command.c_str());
 
-                    if (countFilesInFolder("../../test_images/ppm/" + findFolderName(imageVideoPathsPGM_[0]) + "/") == imageVideoPathsPGM_.size())
+                    if (countFilesInFolder(folder_to_create) == imageVideoPathsPGM_.size())
                     {
                         std::cout << "PPM files already exist." << std::endl;
 
@@ -416,7 +427,16 @@ namespace Application
                     isVideoBOB_ = true;
                     isVideoALT_ = false;
 
-                    std::string folder_to_create = "../../test_images/bob/" + findFolderName(imageVideoPathsPPM_[0]) + "/";
+                    std::string folder_to_create = "";
+                    if (currentExtension_ == 1)
+                    {
+                        folder_to_create = "../../test_images/bob/" + findFolderName(imageVideoPathsPPM_[0]) + "/" + pid_ + "/";
+                    }
+                    else
+                    {
+                        folder_to_create = "../../test_images/bob/" + findFolderName(imageVideoPathsPPM_[0]) + "/";
+                    }
+
                     std::string command = "mkdir -p " + folder_to_create;
                     exec(command.c_str());
 
@@ -474,7 +494,16 @@ namespace Application
                     isVideoBOB_ = false;
                     isVideoALT_ = true;
 
-                    std::string folder_to_create = "../../test_images/alt/" + findFolderName(imageVideoPathsPPM_[0]) + "/";
+                    std::string folder_to_create = "";
+                    if (currentExtension_ == 1)
+                    {
+                        folder_to_create = "../../test_images/alt/" + findFolderName(imageVideoPathsPPM_[0]) + "/" + pid_ + "/";
+                    }
+                    else
+                    {
+                        folder_to_create = "../../test_images/alt/" + findFolderName(imageVideoPathsPPM_[0]) + "/";
+                    }
+
                     std::string command = "mkdir -p " + folder_to_create;
                     exec(command.c_str());
 
